@@ -1,7 +1,7 @@
 {
   "name": "@embeddr/zen-shell",
   "version": "0.2.0-alpha.1",
-  "description": "Zen Shell \u2014 panel-based workspace framework for Embeddr",
+  "description": "Zen Shell — panel-based workspace framework for Embeddr",
   "type": "module",
   "main": "src/index.ts",
   "module": "src/index.ts",
@@ -19,12 +19,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@embeddr/client-typescript": "github:embeddr-net/client-typescript#v0.2.0-alpha.1",
-    "@embeddr/react-ui": "^0.2.0-alpha.1",
+    "@embeddr/client-typescript": "link:../embeddr-network/packages/client-typescript",
+    "@embeddr/react-ui": "link:../embeddr-react-ui",
     "lucide-react": "^0.544.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "@tanstack/react-query": "^5.66.5"
   },
   "devDependencies": {
     "@types/node": "^22.19.3",
