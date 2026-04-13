@@ -3,7 +3,7 @@ import type { PluginDefinition } from "@embeddr/react-ui/types";
 import * as Icons from "lucide-react";
 import { DynamicPluginComponent } from "./dynamic-loader";
 import { ensureUmdBundle } from "../runtime/umd-loader";
-import { registerPlugin, usePluginRegistry } from "./registry";
+import { registerPlugin, registerPlugins, usePluginRegistry } from "./registry";
 
 type PluginComponentRegistration = NonNullable<
   PluginDefinition["components"]
@@ -22,6 +22,7 @@ export interface PluginManifestComponent {
 }
 
 export interface PluginManifestPanel {
+  id?: string;
   name?: string;
   label?: string;
   component?: string;
@@ -31,6 +32,7 @@ export interface PluginManifestPanel {
 }
 
 export interface PluginManifestPage {
+  id?: string;
   name?: string;
   label?: string;
   component?: string;
@@ -106,7 +108,7 @@ function normalizePanelComponents(
   panels: PluginManifestPanel[] | undefined,
 ): PluginManifestComponent[] {
   return (panels || []).map((p) => ({
-    name: p.name,
+    name: p.id || p.name,
     label: p.label,
     component: p.component,
     location: "OVERLAY",
@@ -120,7 +122,7 @@ function normalizePageComponents(
   pages: PluginManifestPage[] | undefined,
 ): PluginManifestComponent[] {
   return (pages || []).map((p) => ({
-    name: p.name,
+    name: p.id || p.name,
     label: p.label,
     component: p.component,
     location: "PAGE",
@@ -277,6 +279,19 @@ export async function loadExternalPlugins({
     };
   }
 
+  const virtualPlugins = manifests
+    .filter((manifest) =>
+      Boolean(manifest.frontend_components?.length) ||
+      Boolean(manifest.frontend_actions?.length) ||
+      Boolean(manifest.panels?.length) ||
+      Boolean(manifest.pages?.length) ||
+      Boolean(manifest.widgets?.length) ||
+      Boolean(manifest.docks?.length),
+    )
+    .map((manifest) => createVirtualPluginDefinition(manifest));
+
+  registerPlugins(virtualPlugins);
+
   for (const manifest of manifests) {
     const hasFrontendRuntime =
       Boolean(manifest.frontend_components?.length) ||
@@ -285,10 +300,6 @@ export async function loadExternalPlugins({
       Boolean(manifest.pages?.length) ||
       Boolean(manifest.widgets?.length) ||
       Boolean(manifest.docks?.length);
-
-    if (hasFrontendRuntime) {
-      registerPlugin(createVirtualPluginDefinition(manifest));
-    }
 
     if (!hasFrontendRuntime) {
       continue;

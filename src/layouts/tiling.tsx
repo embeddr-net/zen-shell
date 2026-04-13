@@ -86,6 +86,26 @@ export const collectEntryKeys = (node: TileNode | null): string[] => {
   ];
 };
 
+export const findFirstEmptyLeaf = (node: TileNode): TileNode | null => {
+  if (!node.children || !node.split) {
+    return node.entryKey ? null : node;
+  }
+  return (
+    findFirstEmptyLeaf(node.children[0]) ||
+    findFirstEmptyLeaf(node.children[1])
+  );
+};
+
+export const findLastOccupiedLeaf = (node: TileNode): TileNode | null => {
+  if (!node.children || !node.split) {
+    return node.entryKey ? node : null;
+  }
+  return (
+    findLastOccupiedLeaf(node.children[1]) ||
+    findLastOccupiedLeaf(node.children[0])
+  );
+};
+
 export const findNodeById = (node: TileNode, id: string): TileNode | null => {
   if (node.id === id) return node;
   if (!node.children) return null;
@@ -172,6 +192,39 @@ export const getTileDragData = (
   } catch {
     return null;
   }
+};
+
+export const sendEntryToTileTree = (
+  tileTree: TileNode | null,
+  entryKey: string,
+  instanceId?: string,
+): TileNode => {
+  if (!tileTree) {
+    return createLeaf(entryKey, undefined, instanceId);
+  }
+
+  const emptyLeaf = findFirstEmptyLeaf(tileTree);
+  if (emptyLeaf) {
+    return updateNodeById(tileTree, emptyLeaf.id, (node) => ({
+      ...node,
+      entryKey,
+      instanceId: instanceId ?? node.instanceId ?? node.id,
+    }));
+  }
+
+  const lastLeaf = findLastOccupiedLeaf(tileTree);
+  if (lastLeaf) {
+    return updateNodeById(tileTree, lastLeaf.id, (existing) => ({
+      id: createNodeId(),
+      split: "horizontal" as const,
+      children: [
+        existing,
+        createLeaf(entryKey, undefined, instanceId),
+      ] as [TileNode, TileNode],
+    }));
+  }
+
+  return createLeaf(entryKey, undefined, instanceId);
 };
 
 type TilingLayoutProps = {

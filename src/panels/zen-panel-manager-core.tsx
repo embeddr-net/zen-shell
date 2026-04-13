@@ -5,6 +5,7 @@ export type ZenWindowStateLike = {
   title?: string;
   componentId: string;
   props?: any;
+  openRevision?: number;
   isMinimized?: boolean;
   isPinned?: boolean;
   tabs?: string[];

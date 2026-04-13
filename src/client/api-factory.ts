@@ -28,8 +28,7 @@ export type EmbeddrAPIConfig = {
   backendUrl: string;
   /** Optional API key */
   apiKey?: string;
-  /** API base path (defaults to "/api") */
-  apiBasePath?: "/api" | "/api/v1" | "/api/v2";
+  // apiBasePath removed — always uses canonical /api/v1
   /** Window store callbacks */
   windows?: {
     open: (id: string, title: string, componentId: string, props?: any) => void;
@@ -142,13 +141,12 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
   const {
     backendUrl,
     apiKey,
-    apiBasePath = "/api",
     settingsPrefix = "embeddr",
   } = config;
 
-  const client = createEmbeddrClient({ backendUrl, apiKey, apiBasePath });
-  const apiBase = client.apiBase || resolveApiBase(backendUrl, apiBasePath);
-  const pluginApiBase = resolveApiBase(backendUrl, "/api");
+  const client = createEmbeddrClient({ backendUrl, apiKey });
+  const apiBase = client.apiBase || resolveApiBase(backendUrl);
+  const pluginApiBase = resolveApiBase(backendUrl);
   const assetBase = client.assetBase || resolveAssetBase(backendUrl);
 
   const authFetch = createFetchWithAuth({
@@ -217,7 +215,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
 
   const registry = usePluginRegistry;
 
-  const api: EmbeddrAPI = {
+  const api = {
     stores: {
       global: {
         selectedImage: null,
@@ -305,6 +303,20 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
           assetBase ? `${assetBase}/${clean}` : `/${clean}`,
         );
       },
+    },
+    types: {
+      summary: () =>
+        requestJson<{
+          types: Array<{
+            name: string;
+            parent_name?: string;
+            description?: string;
+            default_capabilities: string[];
+            metadata: Record<string, any>;
+            artifact_count: number;
+          }>;
+          total_artifacts: number;
+        }>(`${apiBase}/types/summary`),
     },
     artifacts: {
       list: (input) => {
@@ -686,7 +698,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
       getState: windowsApi.getState,
       list: windowsApi.list ?? (() => []),
     },
-  };
+  } as EmbeddrAPI;
 
   (api as any).utils.allowMediaQueryAuthFallback = true;
   (api as any).utils.withApiKey = signProtectedUrl;
@@ -704,7 +716,7 @@ export function createPluginScopedAPI(
   pluginId: string,
   config: { backendUrl: string; apiKey?: string },
 ): EmbeddrAPI {
-  const apiBase = resolveApiBase(config.backendUrl, "/api");
+  const apiBase = resolveApiBase(config.backendUrl);
   const assetBase = resolveAssetBase(config.backendUrl);
   const pluginBase = `${apiBase}/plugins/${pluginId}`;
   const authFetch = createFetchWithAuth({
@@ -779,11 +791,10 @@ export function createPluginScopedAPI(
   };
 }
 
-// Internal helper
+// Internal helper — security endpoints live under /api/v1 like everything else
 function resolveSecurityBase(baseUrl: string): string {
   const clean = baseUrl.replace(/\/+$/, "");
   if (!clean) return "";
-  if (clean.endsWith("/api")) return clean;
-  if (/\/api\/v\d+$/.test(clean)) return clean.replace(/\/api\/v\d+$/, "/api");
-  return `${clean}/api`;
+  if (clean.endsWith("/api/v1")) return clean;
+  return clean.replace(/\/api(\/v\d+)?$/, "") + "/api/v1";
 }

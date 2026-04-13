@@ -1,6 +1,11 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { DraggablePanel as LibDraggablePanel, cn } from "@embeddr/react-ui";
-import { useZenWindowStoreContext, useZenStores } from "../stores";
+import React, { useCallback, useMemo, useEffect, useState } from "react";
+import { DraggablePanel as LibDraggablePanel } from "@embeddr/react-ui/components/embeddr";
+import { cn } from "@embeddr/react-ui/lib/utils";
+import {
+  useZenPanelUiStoreContext,
+  useZenWindowStoreContext,
+  useZenStores,
+} from "../stores";
 
 // Use the Props from the library as base, but extend with Zen-specifics
 interface ZenDraggablePanelProps {
@@ -34,6 +39,10 @@ interface ZenDraggablePanelProps {
   onMouseDown?: (event: React.MouseEvent) => void;
   showTitle?: boolean;
   onShowTitleChange?: (showTitle: boolean) => void;
+  titlePosition?: "top" | "bottom";
+  onTitlePositionChange?: (position: "top" | "bottom") => void;
+  isFolded?: boolean;
+  onFoldChange?: (folded: boolean) => void;
   context?: { artifactId?: string | number; imageUrl?: string };
   openRevision?: number;
   resetUiOnOpen?: boolean;
@@ -68,6 +77,10 @@ export function ZenDraggablePanel({
   onMouseDown,
   showTitle: controlledShowTitle,
   onShowTitleChange,
+  titlePosition: controlledTitlePosition,
+  onTitlePositionChange,
+  isFolded: controlledIsFolded,
+  onFoldChange,
   openRevision,
   resetUiOnOpen,
 }: ZenDraggablePanelProps) {
@@ -99,6 +112,9 @@ export function ZenDraggablePanel({
       (s.panelOrder as string[])[(s.panelOrder as string[]).length - 1] === id,
   );
   const panelConstraints = useZenWindowStoreContext((s) => s.panelConstraints);
+  const panelUiState = useZenPanelUiStoreContext((s) => s.panels[id]);
+  const ensurePanelUi = useZenPanelUiStoreContext((s) => s.ensurePanelUi);
+  const setPanelUi = useZenPanelUiStoreContext((s) => s.setPanelUi);
 
   // Get raw store for imperative access without subscribing
   const { windowStore } = useZenStores();
@@ -109,9 +125,21 @@ export function ZenDraggablePanel({
   const lastMouseRef = React.useRef<{ x: number; y: number } | null>(null);
   const isInteractingRef = React.useRef(false);
   // Initialize from controlled prop → Zustand persisted state → default
-  const [localPosition, setLocalPosition] = useState(
+  const [localPosition, _setLocalPosition] = useState(
     controlledPosition ?? windowState?.position ?? defaultPosition,
   );
+  const setLocalPosition = (pos: { x: number; y: number }) => {
+    if ((window as any).__PANEL_DEBUG) {
+      const prev = positionRef.current;
+      const dx = Math.abs(prev.x - pos.x);
+      const dy = Math.abs(prev.y - pos.y);
+      if (dx > 5 || dy > 5) {
+        console.warn(`[zen:${id}] setLocalPosition JUMP`, { from: prev, to: pos, dx, dy, interacting: isInteractingRef.current });
+        console.trace();
+      }
+    }
+    _setLocalPosition(pos);
+  };
   const [localSize, setLocalSize] = useState(
     controlledSize ?? windowState?.size ?? defaultSize,
   );
@@ -180,9 +208,15 @@ export function ZenDraggablePanel({
   useEffect(() => {
     if (isInteractingRef.current) return;
     if (controlledPosition) {
+      if ((window as any).__PANEL_DEBUG) {
+        const cur = positionRef.current;
+        const dx = Math.abs(cur.x - controlledPosition.x);
+        const dy = Math.abs(cur.y - controlledPosition.y);
+        if (dx > 2 || dy > 2) console.log(`[zen:${id}] SYNC controlledPosition`, { from: cur, to: controlledPosition, delta: { dx, dy } });
+      }
       setLocalPosition(controlledPosition);
     }
-  }, [controlledPosition]);
+  }, [controlledPosition, id]);
 
   useEffect(() => {
     if (isInteractingRef.current) return;
@@ -286,16 +320,43 @@ export function ZenDraggablePanel({
   const isActive = isActiveProp ?? isLastInOrder;
   const isBackdrop = backdropWindowId === id;
 
-  // Local state for render-prop support only (tracking visibility for children)
-  const [internalShowTitle, setInternalShowTitle] = useState(true);
-  const effectiveShowTitle = controlledShowTitle ?? internalShowTitle;
+  const effectiveShowTitle = controlledShowTitle ?? panelUiState?.showTitle ?? true;
+  const effectiveTitlePosition =
+    controlledTitlePosition ?? panelUiState?.titlePosition ?? "top";
+  const effectiveIsFolded = controlledIsFolded ?? panelUiState?.isFolded ?? false;
+
+  useEffect(() => {
+    ensurePanelUi(id);
+  }, [ensurePanelUi, id]);
 
   const handleShowTitleChange = useCallback(
     (show: boolean) => {
-      setInternalShowTitle(show);
+      if (controlledShowTitle === undefined) {
+        setPanelUi(id, { showTitle: show });
+      }
       onShowTitleChange?.(show);
     },
-    [onShowTitleChange],
+    [controlledShowTitle, id, onShowTitleChange, setPanelUi],
+  );
+
+  const handleTitlePositionChange = useCallback(
+    (position: "top" | "bottom") => {
+      if (controlledTitlePosition === undefined) {
+        setPanelUi(id, { titlePosition: position });
+      }
+      onTitlePositionChange?.(position);
+    },
+    [controlledTitlePosition, id, onTitlePositionChange, setPanelUi],
+  );
+
+  const handleFoldChange = useCallback(
+    (folded: boolean) => {
+      if (controlledIsFolded === undefined) {
+        setPanelUi(id, { isFolded: folded });
+      }
+      onFoldChange?.(folded);
+    },
+    [controlledIsFolded, id, onFoldChange, setPanelUi],
   );
 
   // Sync position changes to the store so other components (like taskbars) know where this window is.
@@ -341,6 +402,7 @@ export function ZenDraggablePanel({
         pos,
         controlledSize ?? sizeRef.current,
       );
+      if ((window as any).__PANEL_DEBUG) console.log(`[zen:${id}] handlePositionChange`, { raw: pos, constrained, interacting: isInteractingRef.current });
       lastPositionRef.current = constrained;
       setLocalPosition(constrained);
       isInteractingRef.current = true;
@@ -363,7 +425,12 @@ export function ZenDraggablePanel({
 
   const handleSizeChange = useCallback(
     (s: { width: number; height: number }) => {
-      const positionForClamp = controlledPosition ?? positionRef.current;
+      // During resize, use lastPositionRef (which tracks the live position
+      // being updated by handlePositionChange) instead of the stale
+      // controlledPosition/positionRef which lag behind by one frame.
+      const positionForClamp = isInteractingRef.current
+        ? (lastPositionRef.current ?? positionRef.current)
+        : (controlledPosition ?? positionRef.current);
       const constrainedSize = clampSizeToViewport(s, positionForClamp);
       lastSizeRef.current = constrainedSize;
       setLocalSize(constrainedSize);
@@ -416,14 +483,23 @@ export function ZenDraggablePanel({
   ]);
 
   const handleResizeEnd = useCallback(() => {
-    const currentPos = controlledPosition ?? positionRef.current;
+    if ((window as any).__PANEL_DEBUG) console.log(`[zen:${id}] handleResizeEnd`, { lastPos: lastPositionRef.current, ctrlPos: controlledPosition, posRef: positionRef.current, lastSize: lastSizeRef.current });
+    const currentPos = lastPositionRef.current ?? controlledPosition ?? positionRef.current;
     const size = lastSizeRef.current
       ? clampSizeToViewport(lastSizeRef.current, currentPos)
       : null;
+    // Persist both size AND position — position changes during NW/N/W resize
+    const updates: Record<string, any> = {};
     if (size) {
-      updateWindow(id, { size });
+      updates.size = size;
       setLocalSize(size);
       onSizeChange?.(size);
+    }
+    if (currentPos) {
+      updates.position = currentPos;
+    }
+    if (Object.keys(updates).length > 0) {
+      updateWindow(id, updates);
     }
     isInteractingRef.current = false;
     onResizeEnd?.();
@@ -440,6 +516,9 @@ export function ZenDraggablePanel({
     if (!panelConstraints.enabled) return;
 
     const applyViewportClamp = () => {
+      // Don't re-clamp during an active interaction (drag or resize)
+      if (isInteractingRef.current) return;
+
       const currentSize = clampSizeToViewport(
         controlledSize ?? sizeRef.current,
         controlledPosition ?? positionRef.current,
@@ -561,6 +640,10 @@ export function ZenDraggablePanel({
       transparent={transparent}
       showTitle={effectiveShowTitle}
       onShowTitleChange={handleShowTitleChange}
+      titlePosition={effectiveTitlePosition}
+      onTitlePositionChange={handleTitlePositionChange}
+      isFolded={effectiveIsFolded}
+      onFoldChange={handleFoldChange}
       additionalSettingsItems={additionalSettingsItems}
       openRevision={openRevision}
       resetUiOnOpen={resetUiOnOpen}

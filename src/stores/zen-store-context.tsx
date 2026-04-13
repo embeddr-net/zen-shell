@@ -3,6 +3,10 @@ import type { StoreApi, UseBoundStore } from "zustand";
 import { useZenWindowStore } from "../windows/window-store";
 import { useZenGlobalStore, type ZenGlobalState } from "./global-store";
 import { useZenPanelStore, type ZenPanelState } from "./panel-store";
+import {
+  useZenPanelUiStore,
+  type ZenPanelUiState,
+} from "./panel-ui-store";
 import type { WindowStore } from "../windows/window-store";
 
 // Use the interface from the implementation to ensure parity
@@ -11,12 +15,14 @@ export type ZenWindowStoreState = WindowStore;
 export type ZenStoreBundle = {
   globalStore: UseBoundStore<StoreApi<ZenGlobalState>>;
   panelStore: UseBoundStore<StoreApi<ZenPanelState>>;
+  panelUiStore: UseBoundStore<StoreApi<ZenPanelUiState>>;
   windowStore: UseBoundStore<StoreApi<ZenWindowStoreState>>;
 };
 
 const defaultStores: ZenStoreBundle = {
   globalStore: useZenGlobalStore,
   panelStore: useZenPanelStore,
+  panelUiStore: useZenPanelUiStore,
   windowStore: useZenWindowStore,
 };
 
@@ -61,4 +67,11 @@ export function useZenGlobalStoreContext<T>(
 ): T {
   const { globalStore } = useContext(ZenStoreContext);
   return globalStore(selector);
+}
+
+export function useZenPanelUiStoreContext<T>(
+  selector: (state: ZenPanelUiState) => T,
+): T {
+  const { panelUiStore } = useContext(ZenStoreContext);
+  return panelUiStore(selector);
 }

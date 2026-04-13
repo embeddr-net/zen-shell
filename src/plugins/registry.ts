@@ -8,6 +8,7 @@ export interface PluginRegistryState {
   backendMetadata: Record<string, any>;
 
   registerPlugin: (plugin: PluginDefinition) => void;
+  registerPlugins: (plugins: PluginDefinition[]) => void;
   unregisterPlugin: (pluginId: string) => void;
   activatePlugin: (pluginId: string) => void;
   deactivatePlugin: (pluginId: string) => void;
@@ -48,6 +49,37 @@ export const usePluginRegistry = create<PluginRegistryState>((set, get) => ({
     });
   },
 
+  registerPlugins: (plugins) => {
+    if (!plugins.length) return;
+
+    set((state) => {
+      const nextPlugins = { ...state.plugins };
+      const known = new Set(state.knownPlugins);
+      const active = new Set(state.activePlugins);
+
+      for (const plugin of plugins) {
+        const metadata = state.backendMetadata[plugin.id];
+        const normalizedPlugin =
+          metadata?.intents != null
+            ? {
+                ...plugin,
+                intents: metadata.intents,
+              }
+            : plugin;
+
+        nextPlugins[plugin.id] = normalizedPlugin;
+        known.add(plugin.id);
+        active.add(plugin.id);
+      }
+
+      return {
+        plugins: nextPlugins,
+        knownPlugins: Array.from(known),
+        activePlugins: Array.from(active),
+      };
+    });
+  },
+
   unregisterPlugin: (pluginId) =>
     set((state) => {
       const { [pluginId]: _, ...rest } = state.plugins;
@@ -73,6 +105,10 @@ export const usePluginRegistry = create<PluginRegistryState>((set, get) => ({
 
 export function registerPlugin(plugin: PluginDefinition) {
   usePluginRegistry.getState().registerPlugin(plugin);
+}
+
+export function registerPlugins(plugins: PluginDefinition[]) {
+  usePluginRegistry.getState().registerPlugins(plugins);
 }
 
 export function unregisterPlugin(pluginId: string) {
