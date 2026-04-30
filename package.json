@@ -1,6 +1,6 @@
 {
   "name": "@embeddr/zen-shell",
-  "version": "0.2.0-alpha.2",
+  "version": "0.2.0-alpha.3",
   "description": "Zen Shell — panel-based workspace framework for Embeddr",
   "type": "module",
   "main": "dist/index.js",
@@ -59,6 +59,6 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/embeddr-net/embeddr-zen-shell.git"
+    "url": "https://github.com/embeddr-net/zen-shell.git"
   }
 }
