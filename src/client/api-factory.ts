@@ -40,6 +40,7 @@ export type EmbeddrAPIConfig = {
   toast?: {
     success: (message: string) => void;
     error: (message: string) => void;
+    warning: (message: string) => void;
     info: (message: string) => void;
   };
   /** Optional storage key prefix for settings (defaults to "embeddr") */
@@ -210,6 +211,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
   const toastApi = config.toast ?? {
     success: noop as (msg: string) => void,
     error: noop as (msg: string) => void,
+    warning: noop as (msg: string) => void,
     info: noop as (msg: string) => void,
   };
 

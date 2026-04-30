@@ -4,6 +4,16 @@ import * as Icons from "lucide-react";
 import { DynamicPluginComponent } from "./dynamic-loader";
 import { ensureUmdBundle } from "../runtime/umd-loader";
 import { registerPlugin, registerPlugins, usePluginRegistry } from "./registry";
+import {
+  registerReactiveContext,
+  type ReactiveConfig,
+  type ReactivePresentation,
+} from "@embeddr/react-ui/lib/reactive";
+import {
+  registerRenderable,
+  registerRenderableMeta,
+  type RenderableProps,
+} from "@embeddr/react-ui/lib/renderables";
 
 type PluginComponentRegistration = NonNullable<
   PluginDefinition["components"]
@@ -68,6 +78,30 @@ export interface PluginManifestAction {
   icon?: string;
 }
 
+export interface PluginManifestRenderable {
+  id: string;
+  component: string;
+  thumbnail_component?: string;
+  match_type?: string;
+  uri_prefix?: string;
+  priority?: number;
+  sources?: string[];
+  event_types?: string[];
+  processing_types?: string[];
+  done_types?: string[];
+  error_types?: string[];
+  artifact_id_paths?: string[];
+  preview_paths?: string[];
+  prefer_final_artifact_only?: boolean;
+  presentation?: {
+    label?: string;
+    short_label?: string;
+    logo_url?: string;
+    tone?: "default" | "brand" | "accent" | "warning";
+  };
+  aliases?: string[];
+}
+
 export interface PluginManifest {
   id: string;
   name?: string;
@@ -81,6 +115,7 @@ export interface PluginManifest {
   pages?: PluginManifestPage[];
   widgets?: PluginManifestWidget[];
   docks?: PluginManifestDock[];
+  renderables?: PluginManifestRenderable[];
 }
 
 export interface PluginLoaderAdapter {
@@ -225,6 +260,124 @@ function toActionRegistration(
   } as any;
 }
 
+function renderableToReactiveConfig(
+  r: PluginManifestRenderable,
+): ReactiveConfig {
+  return {
+    source: r.sources && r.sources.length ? r.sources : undefined,
+    types: r.event_types,
+    processingTypes: r.processing_types,
+    doneTypes: r.done_types,
+    errorTypes: r.error_types,
+    artifactIdPaths: r.artifact_id_paths,
+    previewPaths: r.preview_paths,
+    preferFinalArtifactOnly: r.prefer_final_artifact_only,
+  };
+}
+
+function renderableToPresentation(
+  r: PluginManifestRenderable,
+): ReactivePresentation | undefined {
+  const p = r.presentation;
+  if (!p) return undefined;
+  return {
+    label: p.label,
+    shortLabel: p.short_label,
+    logoUrl: p.logo_url,
+    tone: p.tone,
+  };
+}
+
+function registerManifestRenderables(manifest: PluginManifest): void {
+  if (!manifest.renderables?.length) return;
+
+  for (const r of manifest.renderables) {
+    const config = renderableToReactiveConfig(r);
+    const presentation = renderableToPresentation(r);
+
+    const matchPrefixes = [r.uri_prefix, ...(r.aliases || [])].filter(
+      (s): s is string => Boolean(s && s.length),
+    );
+
+    // Register the reactive context under each possible match key. The
+    // registry's resolver iterates entries and returns the first full
+    // match — ANDing type + urlPrefix on one entry would require both
+    // to hit, so we split them into separate entries for OR semantics.
+    if (r.match_type) {
+      registerReactiveContext({
+        match: { type: r.match_type },
+        config,
+        presentation,
+      });
+    }
+    for (const prefix of matchPrefixes) {
+      registerReactiveContext({
+        match: { urlPrefix: prefix },
+        config,
+        presentation,
+      });
+    }
+
+    // Lazy wrapper: resolves the UMD export by plugin id + component name
+    // when the component is first rendered. Renderables register immediately
+    // from the manifest so resolveRenderable() can find them before the UMD
+    // bundle has loaded.
+    const pluginId = manifest.id;
+    const componentName = r.component;
+    const thumbnailName = r.thumbnail_component || "";
+    const LazyRenderable: React.FC<RenderableProps> = (props) =>
+      React.createElement(DynamicPluginComponent, {
+        pluginId,
+        componentName,
+        api: props.api,
+        item: props.item,
+        context: props.context,
+      } as any);
+
+    const LazyThumbnail: React.FC<RenderableProps> | undefined = thumbnailName
+      ? (props) =>
+          React.createElement(DynamicPluginComponent, {
+            pluginId,
+            componentName: thumbnailName,
+            api: props.api,
+            item: props.item,
+            context: props.context,
+          } as any)
+      : undefined;
+
+    // Use predicate-only matching so match_type OR any alias triggers the
+    // renderable. The descriptor's top-level `type`/`urlPrefix` fields are
+    // ANDed by the registry, which would miss alias URIs that don't also
+    // carry the canonical type.
+    registerRenderable({
+      id: r.id,
+      priority: r.priority ?? 50,
+      match: {
+        predicate: (item) => {
+          if (!item) return false;
+          const t = String(item.type || "");
+          if (r.match_type && t === r.match_type) return true;
+          const url = String(item.url || "");
+          if (!url) return false;
+          return matchPrefixes.some((p) => url.startsWith(p));
+        },
+      },
+      render: LazyRenderable,
+      renderThumbnail: LazyThumbnail,
+    });
+
+    registerRenderableMeta({
+      id: r.id,
+      label: presentation?.label,
+      plugin: manifest.id,
+      match: {
+        type: r.match_type || undefined,
+        urlPrefix: matchPrefixes[0],
+      },
+    });
+  }
+}
+
 export function createVirtualPluginDefinition(
   manifest: PluginManifest,
 ): PluginDefinition {
@@ -292,6 +445,13 @@ export async function loadExternalPlugins({
 
   registerPlugins(virtualPlugins);
 
+  // Register declared renderables into the reactive + renderable registries
+  // *before* UMD bundles load — resolveRenderable() then finds the lazy
+  // wrapper, which resolves the actual component on first render.
+  for (const manifest of manifests) {
+    registerManifestRenderables(manifest);
+  }
+
   for (const manifest of manifests) {
     const hasFrontendRuntime =
       Boolean(manifest.frontend_components?.length) ||
@@ -299,7 +459,8 @@ export async function loadExternalPlugins({
       Boolean(manifest.panels?.length) ||
       Boolean(manifest.pages?.length) ||
       Boolean(manifest.widgets?.length) ||
-      Boolean(manifest.docks?.length);
+      Boolean(manifest.docks?.length) ||
+      Boolean(manifest.renderables?.length);
 
     if (!hasFrontendRuntime) {
       continue;
