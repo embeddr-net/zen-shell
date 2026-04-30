@@ -15,15 +15,15 @@
  */
 
 import React from "react";
-import { ThemeProvider } from "./theme-provider";
-import { ZenWebSocketProvider } from "./websocket-provider";
-import { ZenToastProvider } from "./toast-provider";
-import { ZenStoreProvider } from "../stores";
 import { EmbeddrProvider } from "@embeddr/react-ui/context";
+import { ZenStoreProvider, useZenStores, useZenWindowStoreContext } from "../stores";
 import { CoreUIEventBridge } from "../events/core-ui-event-bridge";
 import { ZenClientProvider } from "../client/zen-client-context";
-import { createEmbeddrAPI, type EmbeddrAPIConfig } from "../client/api-factory";
-import { useZenStores, useZenWindowStoreContext } from "../stores";
+import { createEmbeddrAPI } from "../client/api-factory";
+import { ZenToastProvider } from "./toast-provider";
+import { ZenWebSocketProvider } from "./websocket-provider";
+import { ThemeProvider } from "./theme-provider";
+import type { EmbeddrAPIConfig } from "../client/api-factory";
 
 export type EmbeddrShellProviderProps = {
   children: React.ReactNode;
@@ -72,10 +72,8 @@ const ShellInner = ({
         apiKey,
         settingsPrefix,
         windows: {
-          open: (id, title, componentId, props) =>
-            openWindow({ id, title, componentId, props }),
-          spawn: (componentId, title, props) =>
-            spawnWindow(componentId, title, props),
+          open: (id, title, componentId, props) => openWindow({ id, title, componentId, props }),
+          spawn: (componentId, title, props) => spawnWindow(componentId, title, props),
           getState: () => windowStore.getState(),
           list: () => Object.values(windowStore.getState().windows),
         },

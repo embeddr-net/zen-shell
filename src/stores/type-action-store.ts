@@ -21,7 +21,7 @@ export interface TypeActionEntry {
 }
 
 export interface TypeActionState {
-  entries: TypeActionEntry[];
+  entries: Array<TypeActionEntry>;
 
   /** Resolve the best handler for a type. Returns entryKey or null. */
   resolve: (type: string) => string | null;
@@ -30,32 +30,42 @@ export interface TypeActionState {
   register: (entry: TypeActionEntry) => void;
 
   /** Bulk-register multiple entries */
-  registerMany: (entries: TypeActionEntry[]) => void;
+  registerMany: (entries: Array<TypeActionEntry>) => void;
 
   /** Set operator overrides (replaces all operator entries) */
-  setOperatorOverrides: (entries: TypeActionEntry[]) => void;
+  setOperatorOverrides: (entries: Array<TypeActionEntry>) => void;
 
   /** Get all entries for display/editing */
-  getAll: () => TypeActionEntry[];
+  getAll: () => Array<TypeActionEntry>;
 }
 
 /** Sane defaults — what opens by default when no plugin or operator configures otherwise */
-const DEFAULT_ENTRIES: TypeActionEntry[] = [
+const DEFAULT_ENTRIES: Array<TypeActionEntry> = [
   { typePattern: "video", handler: "embeddr-core:media-frame", priority: -1, source: "default" },
   { typePattern: "image", handler: "embeddr-core:media-frame", priority: -1, source: "default" },
   { typePattern: "audio", handler: "embeddr-core:media-frame", priority: -1, source: "default" },
   { typePattern: "scenes", handler: "embeddr-core:media-frame", priority: -1, source: "default" },
-  { typePattern: "artifact", handler: "embeddr-core:artifact-detail", priority: -1, source: "default" },
+  {
+    typePattern: "artifact",
+    handler: "embeddr-core:artifact-detail",
+    priority: -1,
+    source: "default",
+  },
   { typePattern: "resource", handler: "embeddr-core:media-frame", priority: -1, source: "default" },
-  { typePattern: "document", handler: "embeddr-core:artifact-detail", priority: -1, source: "default" },
+  {
+    typePattern: "document",
+    handler: "embeddr-core:artifact-detail",
+    priority: -1,
+    source: "default",
+  },
 ];
 
-function resolveType(entries: TypeActionEntry[], type: string): string | null {
+function resolveType(entries: Array<TypeActionEntry>, type: string): string | null {
   if (!type) return null;
   const normalized = type.toLowerCase();
 
   // Collect all matching entries
-  const matches: TypeActionEntry[] = [];
+  const matches: Array<TypeActionEntry> = [];
 
   for (const entry of entries) {
     const pattern = entry.typePattern.toLowerCase();
@@ -85,22 +95,18 @@ export const useTypeActionStore = create<TypeActionState>()((set, get) => ({
     set((state) => {
       // Don't duplicate — replace if same pattern + source
       const filtered = state.entries.filter(
-        (e) =>
-          !(e.typePattern === entry.typePattern && e.source === entry.source),
+        (e) => !(e.typePattern === entry.typePattern && e.source === entry.source),
       );
       return { entries: [...filtered, entry] };
     });
   },
 
-  registerMany: (newEntries: TypeActionEntry[]) => {
+  registerMany: (newEntries: Array<TypeActionEntry>) => {
     set((state) => {
       let entries = [...state.entries];
       for (const entry of newEntries) {
         entries = entries.filter(
-          (e) =>
-            !(
-              e.typePattern === entry.typePattern && e.source === entry.source
-            ),
+          (e) => !(e.typePattern === entry.typePattern && e.source === entry.source),
         );
         entries.push(entry);
       }
@@ -108,7 +114,7 @@ export const useTypeActionStore = create<TypeActionState>()((set, get) => ({
     });
   },
 
-  setOperatorOverrides: (overrides: TypeActionEntry[]) => {
+  setOperatorOverrides: (overrides: Array<TypeActionEntry>) => {
     set((state) => {
       // Remove all existing operator entries, add new ones
       const nonOperator = state.entries.filter((e) => e.source !== "operator");

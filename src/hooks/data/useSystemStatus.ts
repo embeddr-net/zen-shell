@@ -4,7 +4,7 @@ import { useZenFetch } from "./use-zen-fetch";
 export interface SystemHealth {
   status: string;
   petals_connected?: number;
-  degraded_plugins?: string[] | null;
+  degraded_plugins?: Array<string> | null;
 }
 
 export function useSystemHealth() {

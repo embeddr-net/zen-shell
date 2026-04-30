@@ -1,36 +1,52 @@
 {
   "name": "@embeddr/zen-shell",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.2",
   "description": "Zen Shell — panel-based workspace framework for Embeddr",
   "type": "module",
-  "main": "src/index.ts",
-  "module": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./styles/base.css": "./src/styles/base.css"
   },
   "files": [
-    "src",
+    "dist",
+    "src/styles",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@embeddr/client-typescript": "link:../embeddr-network/packages/client-typescript",
-    "@embeddr/react-ui": "link:../embeddr-react-ui",
+    "@embeddr/client-typescript": "^0.2.0-alpha.3",
+    "@embeddr/react-ui": "^0.2.0-alpha.2",
+    "@tanstack/react-query": "^5.66.5",
     "lucide-react": "^0.544.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "zustand": "^5.0.9",
-    "@tanstack/react-query": "^5.66.5"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@tanstack/eslint-config": "^0.3.4",
     "@types/node": "^22.19.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.2",
+    "prettier": "^3.6.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "typescript": "^5.7.3"
   },
   "keywords": [

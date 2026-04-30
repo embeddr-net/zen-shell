@@ -18,10 +18,7 @@ export class EventBus {
     }
     this.listeners[event].push(listener);
     if (this.debug) {
-      // eslint-disable-next-line no-console
-      console.debug(
-        `[EventBus] on '${event}' (${this.listeners[event].length})`,
-      );
+      console.debug(`[EventBus] on '${event}' (${this.listeners[event].length})`);
     }
     return () => this.off(event, listener);
   }
@@ -30,16 +27,12 @@ export class EventBus {
     if (!this.listeners[event]) return;
     this.listeners[event] = this.listeners[event].filter((l) => l !== listener);
     if (this.debug) {
-      // eslint-disable-next-line no-console
-      console.debug(
-        `[EventBus] off '${event}' (${this.listeners[event].length})`,
-      );
+      console.debug(`[EventBus] off '${event}' (${this.listeners[event].length})`);
     }
   }
 
   emit(event: string, ...args: Array<unknown>) {
     if (this.debug) {
-      // eslint-disable-next-line no-console
       console.debug(`[EventBus] emit '${event}'`, args);
     }
     const listeners = this.listeners[event];
@@ -48,7 +41,6 @@ export class EventBus {
       try {
         listener(...args);
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.error(`[EventBus] listener error for '${event}'`, e);
       }
     });

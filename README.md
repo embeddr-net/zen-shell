@@ -6,26 +6,26 @@ Zen Shell provides the infrastructure that lets Embeddr load, render, and manage
 
 ## What's in here
 
-| Area | Path | Purpose |
-| --- | --- | --- |
-| Shell | `src/shell/ZenShell.tsx` | Root shell component — mounts providers, plugin runtime, panel manager |
-| Panels | `src/panels/` | Draggable floating panels, panel manager, UMD panel host |
-| Plugin runtime | `src/runtime/`, `src/plugins/` | UMD bundle loading, manifest parsing, plugin registry, error boundaries |
-| Tiling layout | `src/layouts/tiling.tsx` | `TilingLayout` component for grid-based panel arrangement |
-| Event bus | `src/events/event-bus.ts` | Global typed event bus; `core-ui-event-bridge` bridges to embeddr-core events |
-| Providers | `src/providers/` | WebSocket, theme, toast, and shell context providers |
-| Stores | `src/stores/` | Zustand stores for panel state and global shell state |
-| Hooks | `src/hooks/` | `useTheme`, `useLocalStorage`, `useScreenSafeArea` |
-| Client | `src/client/` | Plugin-scoped API factory and adapter (sandboxes plugin API calls) |
+| Area           | Path                           | Purpose                                                                       |
+| -------------- | ------------------------------ | ----------------------------------------------------------------------------- |
+| Shell          | `src/shell/ZenShell.tsx`       | Root shell component — mounts providers, plugin runtime, panel manager        |
+| Panels         | `src/panels/`                  | Draggable floating panels, panel manager, UMD panel host                      |
+| Plugin runtime | `src/runtime/`, `src/plugins/` | UMD bundle loading, manifest parsing, plugin registry, error boundaries       |
+| Tiling layout  | `src/layouts/tiling.tsx`       | `TilingLayout` component for grid-based panel arrangement                     |
+| Event bus      | `src/events/event-bus.ts`      | Global typed event bus; `core-ui-event-bridge` bridges to embeddr-core events |
+| Providers      | `src/providers/`               | WebSocket, theme, toast, and shell context providers                          |
+| Stores         | `src/stores/`                  | Zustand stores for panel state and global shell state                         |
+| Hooks          | `src/hooks/`                   | `useTheme`, `useLocalStorage`, `useScreenSafeArea`                            |
+| Client         | `src/client/`                  | Plugin-scoped API factory and adapter (sandboxes plugin API calls)            |
 
 ## Usage
 
 Zen Shell is a source-only package — it has no build step and is consumed by packages that do their own bundling (currently `embeddr-frontend`).
 
 ```ts
-import { ZenShell } from '@embeddr/zen-shell'
-import { globalEventBus } from '@embeddr/zen-shell'
-import { TilingLayout } from '@embeddr/zen-shell'
+import { ZenShell } from "@embeddr/zen-shell";
+import { globalEventBus } from "@embeddr/zen-shell";
+import { TilingLayout } from "@embeddr/zen-shell";
 ```
 
 The `ZenShell` component is the top-level host. Mount it inside your app's providers:
@@ -50,18 +50,18 @@ Plugins receive a sandboxed `EmbeddrPluginApi` object — they cannot access the
 A global typed event bus decouples plugin panels from the shell and from each other:
 
 ```ts
-import { globalEventBus } from '@embeddr/zen-shell'
+import { globalEventBus } from "@embeddr/zen-shell";
 
 // Emit
-globalEventBus.emit('artifact:selected', { id: '...' })
+globalEventBus.emit("artifact:selected", { id: "..." });
 
 // Subscribe
-const off = globalEventBus.on('artifact:selected', ({ id }) => {
-  console.log('artifact selected:', id)
-})
+const off = globalEventBus.on("artifact:selected", ({ id }) => {
+  console.log("artifact selected:", id);
+});
 
 // Cleanup
-off()
+off();
 ```
 
 The `CoreUiEventBridge` component wires embeddr-core WebSocket events into the event bus automatically when mounted inside `ZenShell`.
@@ -71,12 +71,12 @@ The `CoreUiEventBridge` component wires embeddr-core WebSocket events into the e
 `TilingLayout` arranges children in a responsive grid. Panels registered as "tiling" panels are managed through this layout rather than the floating panel manager:
 
 ```tsx
-import { TilingLayout } from '@embeddr/zen-shell'
+import { TilingLayout } from "@embeddr/zen-shell";
 
 <TilingLayout columns={2}>
   <MyPanel />
   <AnotherPanel />
-</TilingLayout>
+</TilingLayout>;
 ```
 
 ## WebSocket

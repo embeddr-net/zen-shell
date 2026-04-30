@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import { ThemeProviderContext } from "../context/theme-context";
+import type { ReactNode } from "react";
 
 export type Theme = "dark" | "light" | "system";
 

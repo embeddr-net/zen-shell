@@ -20,16 +20,14 @@ export function useArtifactTypeCounts() {
   const { data, isLoading } = useQuery({
     queryKey: ["types", "summary"],
     queryFn: () =>
-      zenFetch<{ types: TypeSummaryItem[]; total_artifacts: number }>(
-        "/types/summary",
-      ),
+      zenFetch<{ types: Array<TypeSummaryItem>; total_artifacts: number }>("/types/summary"),
     staleTime: 60_000,
   });
 
   const types = data?.types ?? [];
   const totalArtifacts = data?.total_artifacts ?? 0;
 
-  const typeTree = useMemo<TypeTreeEntry[]>(() => {
+  const typeTree = useMemo<Array<TypeTreeEntry>>(() => {
     const baseTypes = new Map<
       string,
       { count: number; subtypes: Array<{ typeName: string; count: number }> }
@@ -62,7 +60,7 @@ export function useArtifactTypeCounts() {
       }
     }
 
-    const entries: TypeTreeEntry[] = [];
+    const entries: Array<TypeTreeEntry> = [];
     for (const [baseType, { count, subtypes }] of baseTypes) {
       if (count === 0 && subtypes.every((s) => s.count === 0)) continue;
       subtypes.sort((a, b) => b.count - a.count);

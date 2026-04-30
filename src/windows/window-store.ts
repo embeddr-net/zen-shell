@@ -8,7 +8,7 @@ export interface WindowState {
   props?: any;
   isMinimized: boolean;
   isPinned: boolean;
-  tabs?: string[];
+  tabs?: Array<string>;
   activeTabId?: string;
   groupHostId?: string;
   positionMode?: "absolute" | "anchored";
@@ -33,18 +33,13 @@ export interface PanelConstraints {
 
 export interface WindowStore {
   windows: Record<string, WindowState>;
-  panelOrder: string[];
+  panelOrder: Array<string>;
   backdropWindowId: string | null;
   mergeHoverTargetId: string | null;
   panelGroupingEnabled: boolean;
   panelConstraints: PanelConstraints;
 
-  openWindow: (wm: {
-    id: string;
-    title: string;
-    componentId: string;
-    props?: any;
-  }) => void;
+  openWindow: (wm: { id: string; title: string; componentId: string; props?: any }) => void;
   spawnWindow: (componentId: string, title: string, props?: any) => string;
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
@@ -90,12 +85,8 @@ export const useZenWindowStore = create<WindowStore>()(
       openWindow: ({ id, title, componentId, props }) =>
         set((state) => {
           const safeTitle = title?.trim() || "Untitled Panel";
-          const defaultPosition = props?.defaultPosition as
-            | { x: number; y: number }
-            | undefined;
-          const defaultSize = props?.defaultSize as
-            | { width: number; height: number }
-            | undefined;
+          const defaultPosition = props?.defaultPosition as { x: number; y: number } | undefined;
+          const defaultSize = props?.defaultSize as { width: number; height: number } | undefined;
           if (state.windows[id]) {
             const newOrder = state.panelOrder.filter((p) => p !== id);
             newOrder.push(id);
@@ -192,10 +183,7 @@ export const useZenWindowStore = create<WindowStore>()(
                 nextWindows[current.groupHostId] = {
                   ...host,
                   tabs: remainingTabs,
-                  activeTabId:
-                    host.activeTabId === id
-                      ? remainingTabs[0]
-                      : host.activeTabId,
+                  activeTabId: host.activeTabId === id ? remainingTabs[0] : host.activeTabId,
                 };
               }
             }
@@ -242,10 +230,7 @@ export const useZenWindowStore = create<WindowStore>()(
             }
             delete nextWindows[id];
             const newOrder = state.panelOrder.filter((p) => p !== id);
-            if (
-              remainingTabs.length > 0 &&
-              !newOrder.includes(remainingTabs[0])
-            ) {
+            if (remainingTabs.length > 0 && !newOrder.includes(remainingTabs[0])) {
               newOrder.push(remainingTabs[0]);
             }
             return { windows: nextWindows, panelOrder: newOrder };
@@ -318,9 +303,7 @@ export const useZenWindowStore = create<WindowStore>()(
           const normalizedUpdates = {
             ...updates,
             title:
-              updates.title !== undefined
-                ? updates.title?.trim() || "Untitled Panel"
-                : win.title,
+              updates.title !== undefined ? updates.title?.trim() || "Untitled Panel" : win.title,
           };
           const hasChanges = Object.entries(updates).some(([key, value]) => {
             const uKey = key as keyof WindowState;
@@ -418,10 +401,7 @@ export const useZenWindowStore = create<WindowStore>()(
         set((state) => ({
           panelConstraints: {
             ...state.panelConstraints,
-            enabled:
-              typeof enabled === "boolean"
-                ? enabled
-                : !state.panelConstraints.enabled,
+            enabled: typeof enabled === "boolean" ? enabled : !state.panelConstraints.enabled,
           },
         })),
 
@@ -447,9 +427,7 @@ export const useZenWindowStore = create<WindowStore>()(
 
           const targetTabs = target.tabs ?? [targetId];
           const sourceTabs = source.tabs ?? [sourceId];
-          const mergedTabs = Array.from(
-            new Set([...targetTabs, ...sourceTabs]),
-          );
+          const mergedTabs = Array.from(new Set([...targetTabs, ...sourceTabs]));
 
           const nextWindows = { ...state.windows };
           nextWindows[targetId] = {
@@ -502,9 +480,7 @@ export const useZenWindowStore = create<WindowStore>()(
               ...newHost,
               tabs: newTabs,
               activeTabId:
-                host.activeTabId && host.activeTabId !== hostId
-                  ? host.activeTabId
-                  : newHostId,
+                host.activeTabId && host.activeTabId !== hostId ? host.activeTabId : newHostId,
               groupHostId: undefined,
               isMinimized: false,
               position: host.position,
@@ -536,8 +512,7 @@ export const useZenWindowStore = create<WindowStore>()(
           nextWindows[hostId] = {
             ...host,
             tabs: remainingTabs.length > 1 ? remainingTabs : undefined,
-            activeTabId:
-              host.activeTabId === tabId ? remainingTabs[0] : host.activeTabId,
+            activeTabId: host.activeTabId === tabId ? remainingTabs[0] : host.activeTabId,
           };
           nextWindows[tabId] = {
             ...tab,
@@ -569,12 +544,8 @@ export const useZenWindowStore = create<WindowStore>()(
           if (!host?.tabs || !host.tabs.includes(tabId)) return {};
           const currentIndex = host.tabs.indexOf(tabId);
           const nextTabs = host.tabs.filter((id) => id !== tabId);
-          const adjustedIndex =
-            targetIndex > currentIndex ? targetIndex - 1 : targetIndex;
-          const clampedIndex = Math.max(
-            0,
-            Math.min(adjustedIndex, nextTabs.length),
-          );
+          const adjustedIndex = targetIndex > currentIndex ? targetIndex - 1 : targetIndex;
+          const clampedIndex = Math.max(0, Math.min(adjustedIndex, nextTabs.length));
           nextTabs.splice(clampedIndex, 0, tabId);
           return {
             windows: {

@@ -14,7 +14,7 @@ export const registerZenGlobals = (globals?: ZenGlobalMap) => {
 
   Object.entries(source).forEach(([key, value]) => {
     if (!target[key] && value !== undefined) {
-      target[key] = value as unknown;
+      target[key] = value;
     }
   });
 };

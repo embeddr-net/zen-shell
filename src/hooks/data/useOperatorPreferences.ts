@@ -8,7 +8,7 @@
  * when the server is unreachable or no preference is stored.
  */
 import { useCallback } from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useZenFetch } from "./use-zen-fetch";
 
 const PLUGIN_NAME = "embeddr-core";
@@ -52,10 +52,7 @@ export function useOperatorPreferences<T>(key: string, defaultValue: T) {
     },
   });
 
-  const save = useCallback(
-    (value: T) => mutation.mutateAsync(value),
-    [mutation],
-  );
+  const save = useCallback((value: T) => mutation.mutateAsync(value), [mutation]);
 
   return {
     data: data ?? defaultValue,

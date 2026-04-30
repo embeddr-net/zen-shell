@@ -1,26 +1,17 @@
 import React from "react";
 import * as Lucide from "lucide-react";
-import type { EmbeddrAPI, PluginDefinition } from "@embeddr/react-ui/types";
 import { DynamicPluginComponent } from "../plugins/dynamic-loader";
 import { PluginErrorBoundary } from "../plugins/plugin-error-boundary";
 import { usePluginRegistry } from "../plugins/registry";
-import {
-  useZenGlobalStoreContext,
-  useZenWindowStoreContext,
-} from "../stores";
+import { useZenGlobalStoreContext, useZenWindowStoreContext } from "../stores";
 import { ZenDraggablePanel } from "./zen-draggable-panel";
-import {
-  ZenPanelManagerCore,
-  type ZenWindowRendererProps,
-  type ZenWindowStateLike,
-} from "./zen-panel-manager-core";
-import {
-  resolvePluginComponent,
-  type ResolvedPluginComponent,
-} from "./plugin-components";
+import { ZenPanelManagerCore } from "./zen-panel-manager-core";
+import { resolvePluginComponent } from "./plugin-components";
+import type { ResolvedPluginComponent } from "./plugin-components";
+import type { ZenWindowRendererProps, ZenWindowStateLike } from "./zen-panel-manager-core";
+import type { EmbeddrAPI, PluginDefinition } from "@embeddr/react-ui/types";
 
-const ZenPluginPanelManagerContext =
-  React.createContext<ZenPluginPanelManagerProps | null>(null);
+const ZenPluginPanelManagerContext = React.createContext<ZenPluginPanelManagerProps | null>(null);
 
 function useZenPluginPanelManagerProps() {
   const value = React.useContext(ZenPluginPanelManagerContext);
@@ -70,19 +61,14 @@ export type ZenPluginPanelManagerProps = {
   api: EmbeddrAPI;
   logos?: Record<string, string | null>;
   getPluginApi?: (pluginId: string) => EmbeddrAPI;
-  getWindowContext?: (
-    args: ZenPluginPanelManagerContextArgs,
-  ) => PluginContext | undefined;
+  getWindowContext?: (args: ZenPluginPanelManagerContextArgs) => PluginContext | undefined;
   getAdditionalSettingsItems?: (
     args: ZenPluginPanelManagerAdditionalSettingsArgs,
   ) => React.ReactNode;
   renderUnknown?: (windowState: ZenWindowStateLike) => React.ReactNode;
 };
 
-function resolveTitle(
-  windowState: ZenWindowStateLike,
-  def?: PluginComponentDefLike | null,
-) {
+function resolveTitle(windowState: ZenWindowStateLike, def?: PluginComponentDefLike | null) {
   return (
     windowState.title?.trim() ||
     def?.label ||
@@ -92,33 +78,18 @@ function resolveTitle(
   );
 }
 
-function resolveTitleIcon(
-  def: PluginComponentDefLike | null | undefined,
-  logoUrl?: string | null,
-) {
+function resolveTitleIcon(def: PluginComponentDefLike | null | undefined, logoUrl?: string | null) {
   if (logoUrl) {
-    return (
-      <img
-        src={logoUrl}
-        alt="panel logo"
-        className="h-4 w-4 rounded-sm object-contain"
-      />
-    );
+    return <img src={logoUrl} alt="panel logo" className="h-4 w-4 rounded-sm object-contain" />;
   }
 
-  const icon = def?.icon as
-    | React.ComponentType<{ className?: string }>
-    | string
-    | undefined;
+  const icon = def?.icon as React.ComponentType<{ className?: string }> | string | undefined;
   if (!icon) return undefined;
 
   if (typeof icon === "string") {
-    const Icon = (
-      Lucide as unknown as Record<
-        string,
-        React.ComponentType<{ className?: string }>
-      >
-    )[icon];
+    const Icon = (Lucide as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
+      icon
+    ];
     return Icon ? <Icon className="h-4 w-4" /> : undefined;
   }
 
@@ -174,10 +145,7 @@ const PluginPanelContent = React.memo(
 
     return (
       <div className="embeddr-plugin-scope h-full w-full">
-        <PluginErrorBoundary
-          pluginId={resolved.pluginId}
-          componentName={resolved.componentName}
-        >
+        <PluginErrorBoundary pluginId={resolved.pluginId} componentName={resolved.componentName}>
           {InlineComponent ? (
             <InlineComponent {...sharedProps} />
           ) : (
@@ -212,12 +180,7 @@ const PluginPanelContent = React.memo(
 );
 
 const PluginWindowRenderer = React.memo(
-  ({
-    windowState,
-    zIndex,
-    isBackdrop,
-    isActive,
-  }: ZenWindowRendererProps) => {
+  ({ windowState, zIndex, isBackdrop, isActive }: ZenWindowRendererProps) => {
     const {
       api,
       logos,
@@ -259,9 +222,7 @@ const PluginWindowRenderer = React.memo(
           onMouseDown={() => bringToFront(windowState.id)}
           position={windowState.position}
           size={windowState.size}
-          onPositionChange={(position) =>
-            updateWindow(windowState.id, { position })
-          }
+          onPositionChange={(position) => updateWindow(windowState.id, { position })}
           onSizeChange={(size) => updateWindow(windowState.id, { size })}
           pinned={windowState.isPinned}
           zIndex={zIndex}
@@ -280,10 +241,7 @@ const PluginWindowRenderer = React.memo(
 
     const defaultContext = {
       artifactId: selectedImage?.id,
-      imageUrl:
-        selectedImage?.url ||
-        selectedImage?.image_url ||
-        selectedImage?.thumb_url,
+      imageUrl: selectedImage?.url || selectedImage?.image_url || selectedImage?.thumb_url,
     };
     const context =
       getWindowContext?.({
@@ -295,10 +253,7 @@ const PluginWindowRenderer = React.memo(
       }) || defaultContext;
 
     const title = resolveTitle(activeWindow, resolved.def);
-    const titleIcon = resolveTitleIcon(
-      resolved.def,
-      logos?.[resolved.pluginId] || null,
-    );
+    const titleIcon = resolveTitleIcon(resolved.def, logos?.[resolved.pluginId] || null);
     const additionalSettingsItems = getAdditionalSettingsItems?.({
       windowState,
       activeWindow,
@@ -307,10 +262,8 @@ const PluginWindowRenderer = React.memo(
       zIndex,
     });
 
-    const defaultPosition =
-      activeWindow.props?.defaultPosition || resolved.def?.defaultPosition;
-    const defaultSize =
-      activeWindow.props?.defaultSize || resolved.def?.defaultSize;
+    const defaultPosition = activeWindow.props?.defaultPosition || resolved.def?.defaultPosition;
+    const defaultSize = activeWindow.props?.defaultSize || resolved.def?.defaultSize;
     const hideHeader = isBackdrop
       ? true
       : activeWindow.props?.hideHeader ||
@@ -335,16 +288,12 @@ const PluginWindowRenderer = React.memo(
         size={
           isBackdrop
             ? {
-                width:
-                  typeof window !== "undefined" ? window.innerWidth : 1000,
-                height:
-                  typeof window !== "undefined" ? window.innerHeight : 1000,
+                width: typeof window !== "undefined" ? window.innerWidth : 1000,
+                height: typeof window !== "undefined" ? window.innerHeight : 1000,
               }
             : windowState.size
         }
-        onPositionChange={(position) =>
-          updateWindow(windowState.id, { position })
-        }
+        onPositionChange={(position) => updateWindow(windowState.id, { position })}
         onSizeChange={(size) => updateWindow(windowState.id, { size })}
         defaultPosition={defaultPosition}
         defaultSize={defaultSize}

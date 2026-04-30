@@ -1,13 +1,10 @@
 import React from "react";
-import type {
-  PluginManifestItem,
-  PluginManifestConfig,
-} from "../runtime/plugin-manifest";
 import {
   fetchPluginManifest,
   loadPluginBundle,
   resolvePluginManifestUrl,
 } from "../runtime/plugin-manifest";
+import type { PluginManifestConfig, PluginManifestItem } from "../runtime/plugin-manifest";
 
 const PluginManifestContext = React.createContext({
   isReady: false,
@@ -15,7 +12,7 @@ const PluginManifestContext = React.createContext({
   isError: false,
   errorMessage: null as string | null,
   manifestUrl: null as string | null,
-  plugins: [] as PluginManifestItem[],
+  plugins: [] as Array<PluginManifestItem>,
 });
 
 export function PluginManifestProvider({
@@ -34,12 +31,11 @@ export function PluginManifestProvider({
     isError: false,
     errorMessage: null as string | null,
     manifestUrl: resolvePluginManifestUrl({ manifestUrl, publicUrl }) ?? null,
-    plugins: [] as PluginManifestItem[],
+    plugins: [] as Array<PluginManifestItem>,
   }));
 
   React.useEffect(() => {
-    const resolved =
-      resolvePluginManifestUrl({ manifestUrl, publicUrl }) ?? null;
+    const resolved = resolvePluginManifestUrl({ manifestUrl, publicUrl }) ?? null;
     setState((prev) => ({ ...prev, manifestUrl: resolved }));
   }, [manifestUrl, publicUrl]);
 
@@ -80,11 +76,7 @@ export function PluginManifestProvider({
     };
   }, [autoLoad, state.manifestUrl]);
 
-  return (
-    <PluginManifestContext.Provider value={state}>
-      {children}
-    </PluginManifestContext.Provider>
-  );
+  return <PluginManifestContext.Provider value={state}>{children}</PluginManifestContext.Provider>;
 }
 
 export function usePluginManifestContext() {

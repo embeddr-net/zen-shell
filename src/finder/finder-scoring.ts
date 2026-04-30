@@ -20,11 +20,7 @@ export function norm(s: string): string {
  *    35 — subtitle contains query
  *     0 — no match
  */
-export function localScore(
-  query: string,
-  title: string,
-  subtitle?: string,
-): number {
+export function localScore(query: string, title: string, subtitle?: string): number {
   const q = norm(query);
   if (!q) return 0;
   const t = norm(title);
@@ -40,10 +36,7 @@ export function localScore(
  * Merge two arrays of finder items, deduplicating by ID.
  * When both arrays have the same ID, keeps the one with the higher score.
  */
-export function mergeDedup(
-  a: ZenFinderItem[],
-  b: ZenFinderItem[],
-): ZenFinderItem[] {
+export function mergeDedup(a: Array<ZenFinderItem>, b: Array<ZenFinderItem>): Array<ZenFinderItem> {
   const map = new Map<string, ZenFinderItem>();
   for (const it of [...a, ...b]) {
     const prev = map.get(it.id);
@@ -58,10 +51,10 @@ export function mergeDedup(
  * Returns items sorted by score (descending), limited to `maxItems`.
  */
 export function filterLocalItems(
-  items: ZenFinderItem[],
+  items: Array<ZenFinderItem>,
   query: string,
   maxItems = 40,
-): ZenFinderItem[] {
+): Array<ZenFinderItem> {
   const q = norm(query);
   if (!q) {
     return items.slice(0, maxItems).map((x) => ({ ...x, score: 0 }));
@@ -78,9 +71,9 @@ export function filterLocalItems(
  * then by score descending.
  */
 export function sortFinderResults(
-  items: ZenFinderItem[],
+  items: Array<ZenFinderItem>,
   maxItems = 60,
-): ZenFinderItem[] {
+): Array<ZenFinderItem> {
   return items
     .sort((a, b) => {
       const sa = (a.source === "local" ? 1000 : 0) + (a.score ?? 0);

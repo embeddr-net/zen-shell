@@ -9,7 +9,6 @@
  * every required method.
  */
 
-import type { EmbeddrAPI } from "@embeddr/react-ui/types";
 import {
   createEmbeddrClient,
   createFetchWithAuth,
@@ -22,6 +21,7 @@ import {
   getPluginActionsByLocation,
   getPluginComponentsByLocation,
 } from "../plugins/context-actions";
+import type { EmbeddrAPI } from "@embeddr/react-ui/types";
 
 export type EmbeddrAPIConfig = {
   /** Backend URL (e.g. "http://localhost:8003") */
@@ -77,11 +77,7 @@ const joinUrl = (base: string, path: string) => {
   return cleanPath ? `${cleanBase}/${cleanPath}` : cleanBase;
 };
 
-const resolvePluginRequestUrl = (
-  pluginBase: string,
-  assetBase: string,
-  path: string,
-) => {
+const resolvePluginRequestUrl = (pluginBase: string, assetBase: string, path: string) => {
   const raw = String(path || "").trim();
   if (!raw) return pluginBase;
   if (ABSOLUTE_URL_RE.test(raw)) return raw;
@@ -103,10 +99,7 @@ const shouldAddJsonContentType = (init?: RequestInit) => {
   return !headers.has("Content-Type");
 };
 
-const signResolvedValue = <T>(
-  value: T,
-  signUrl: (url: string) => string,
-): T => {
+const signResolvedValue = <T>(value: T, signUrl: (url: string) => string): T => {
   if (!value || typeof value !== "object") return value;
 
   if (Array.isArray(value)) {
@@ -123,9 +116,7 @@ const signResolvedValue = <T>(
     next.preview_url = signUrl(next.preview_url);
   }
   if (Array.isArray(next.items)) {
-    next.items = next.items.map((item: any) =>
-      signResolvedValue(item, signUrl),
-    );
+    next.items = next.items.map((item: any) => signResolvedValue(item, signUrl));
   }
   if (next.artifact && typeof next.artifact === "object") {
     next.artifact = signResolvedValue(next.artifact, signUrl);
@@ -139,11 +130,7 @@ const signResolvedValue = <T>(
  * All methods have sensible defaults; distros can override specific slices.
  */
 export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
-  const {
-    backendUrl,
-    apiKey,
-    settingsPrefix = "embeddr",
-  } = config;
+  const { backendUrl, apiKey, settingsPrefix = "embeddr" } = config;
 
   const client = createEmbeddrClient({ backendUrl, apiKey });
   const apiBase = client.apiBase || resolveApiBase(backendUrl);
@@ -160,18 +147,13 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
       const baseUrl =
         assetBase ||
         backendUrl ||
-        (typeof window !== "undefined"
-          ? window.location.origin
-          : "http://localhost");
+        (typeof window !== "undefined" ? window.location.origin : "http://localhost");
       const parsed = new URL(url, baseUrl);
       const assetOrigin = new URL(baseUrl).origin;
-      const windowOrigin =
-        typeof window !== "undefined" ? window.location.origin : assetOrigin;
-      const isInternal =
-        parsed.origin === assetOrigin || parsed.origin === windowOrigin;
+      const windowOrigin = typeof window !== "undefined" ? window.location.origin : assetOrigin;
+      const isInternal = parsed.origin === assetOrigin || parsed.origin === windowOrigin;
       const isProtectedPath =
-        parsed.pathname.startsWith("/api/") ||
-        parsed.pathname.startsWith("/plugins/");
+        parsed.pathname.startsWith("/api/") || parsed.pathname.startsWith("/plugins/");
       if (!isInternal || !isProtectedPath) return parsed.toString();
       parsed.searchParams.set("api_key", apiKey);
       return parsed.toString();
@@ -182,10 +164,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
 
   const securityBase = resolveSecurityBase(assetBase);
 
-  const requestJson = async <T>(
-    url: string,
-    init: RequestInit = {},
-  ): Promise<T> => {
+  const requestJson = async <T>(url: string, init: RequestInit = {}): Promise<T> => {
     const res = await authFetch(url, {
       ...init,
       headers: init.body
@@ -206,13 +185,12 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
     list: () => [],
   };
 
-
   const noop = () => {};
   const toastApi = config.toast ?? {
-    success: noop as (msg: string) => void,
-    error: noop as (msg: string) => void,
-    warning: noop as (msg: string) => void,
-    info: noop as (msg: string) => void,
+    success: noop,
+    error: noop,
+    warning: noop,
+    info: noop,
   };
 
   const registry = usePluginRegistry;
@@ -244,14 +222,10 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
       setTemplate: () => {},
     },
     settings: {
-      get: <T>(key: string, defaultValue?: T): T =>
-        readSetting(key, defaultValue),
+      get: <T>(key: string, defaultValue?: T): T => readSetting(key, defaultValue),
       set: (key: string, value: any) => writeSetting(key, value),
       getPlugin: <T>(pluginId: string, key: string, defaultValue?: T): T =>
-        readSetting(
-          `${settingsPrefix}:plugin:${pluginId}:${key}`,
-          defaultValue,
-        ),
+        readSetting(`${settingsPrefix}:plugin:${pluginId}:${key}`, defaultValue),
       setPlugin: (pluginId: string, key: string, value: any) =>
         writeSetting(`${settingsPrefix}:plugin:${pluginId}:${key}`, value),
     },
@@ -278,9 +252,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
           credentials: "include",
         });
         if (!res.ok) {
-          const body = await res
-            .json()
-            .catch(() => ({ detail: res.statusText }));
+          const body = await res.json().catch(() => ({ detail: res.statusText }));
           return { ok: false, detail: body.detail || res.statusText };
         }
         return res.json();
@@ -301,9 +273,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
       uploadImage: notImplemented,
       getPluginUrl: (path: string) => {
         const clean = path.replace(/^\//, "");
-        return signProtectedUrl(
-          assetBase ? `${assetBase}/${clean}` : `/${clean}`,
-        );
+        return signProtectedUrl(assetBase ? `${assetBase}/${clean}` : `/${clean}`);
       },
     },
     types: {
@@ -313,7 +283,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
             name: string;
             parent_name?: string;
             description?: string;
-            default_capabilities: string[];
+            default_capabilities: Array<string>;
             metadata: Record<string, any>;
             artifact_count: number;
           }>;
@@ -323,10 +293,8 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
     artifacts: {
       list: (input) => {
         const search = new URLSearchParams();
-        if (input?.limit !== undefined)
-          search.set("limit", String(input.limit));
-        if (input?.offset !== undefined)
-          search.set("offset", String(input.offset));
+        if (input?.limit !== undefined) search.set("limit", String(input.limit));
+        if (input?.offset !== undefined) search.set("offset", String(input.offset));
         if (input?.q) search.set("q", input.q);
         if (input?.access_scope) search.set("access_scope", input.access_scope);
         if (input?.type_name) search.set("type_name", input.type_name);
@@ -358,15 +326,12 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
           method: "POST",
           body: JSON.stringify(input),
         }),
-      getGraphTaxonomy: () =>
-        requestJson(`${apiBase}/artifacts/graph/taxonomy`),
+      getGraphTaxonomy: () => requestJson(`${apiBase}/artifacts/graph/taxonomy`),
       resolve: async (input) =>
         signResolvedValue(
           await requestJson<any>(
             `${apiBase}/artifacts/${encodeURIComponent(input.id)}/resolve${
-              input.variant
-                ? `?variant=${encodeURIComponent(input.variant)}`
-                : ""
+              input.variant ? `?variant=${encodeURIComponent(input.variant)}` : ""
             }`,
           ),
           signProtectedUrl,
@@ -377,27 +342,19 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
           body: JSON.stringify(input),
         }),
       update: async (id, input) => {
-        const res = await authFetch(
-          `${apiBase}/artifacts/${encodeURIComponent(id)}`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(input),
-          },
-        );
-        if (!res.ok)
-          throw new Error((await res.text()) || "Failed to update artifact");
+        const res = await authFetch(`${apiBase}/artifacts/${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        });
+        if (!res.ok) throw new Error((await res.text()) || "Failed to update artifact");
         return res.json();
       },
       delete: async (id) => {
-        const res = await authFetch(
-          `${apiBase}/artifacts/${encodeURIComponent(id)}`,
-          {
-            method: "DELETE",
-          },
-        );
-        if (!res.ok)
-          throw new Error((await res.text()) || "Failed to delete artifact");
+        const res = await authFetch(`${apiBase}/artifacts/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) throw new Error((await res.text()) || "Failed to delete artifact");
         return res.json();
       },
       uploadInit: (input) =>
@@ -411,19 +368,16 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
           body: JSON.stringify(input),
         }),
       uploadFile: async (input) => {
-        const init = await requestJson<any>(
-          `${apiBase}/lotus/embeddr-core.artifact.upload.init`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              artifact_id: input.artifact_id,
-              filename: input.file.name,
-              content_type: input.file.type,
-              size: input.file.size,
-              confirm: true,
-            }),
-          },
-        );
+        const init = await requestJson<any>(`${apiBase}/lotus/embeddr-core.artifact.upload.init`, {
+          method: "POST",
+          body: JSON.stringify({
+            artifact_id: input.artifact_id,
+            filename: input.file.name,
+            content_type: input.file.type,
+            size: input.file.size,
+            confirm: true,
+          }),
+        });
 
         const uploadPath = String(init?.upload_path || "").trim();
         if (!uploadPath) {
@@ -459,15 +413,11 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
 
         return { init, uploaded, complete };
       },
-      getContentUrl: (id: string) =>
-        signProtectedUrl(client.getArtifactContentUrl(id)),
+      getContentUrl: (id: string) => signProtectedUrl(client.getArtifactContentUrl(id)),
     },
     resources: {
       resolve: async (input) => {
-        if (
-          input.artifactPayload?.content_url &&
-          input.artifactPayload?.preview_url
-        ) {
+        if (input.artifactPayload?.content_url && input.artifactPayload?.preview_url) {
           return signResolvedValue(
             {
               ...input.artifactPayload,
@@ -485,27 +435,22 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
           return {
             id: input.artifactId,
             type: input.hintType || "image",
-            content_url: signProtectedUrl(
-              client.getArtifactContentUrl(input.artifactId),
-            ),
+            content_url: signProtectedUrl(client.getArtifactContentUrl(input.artifactId)),
             preview_url: signProtectedUrl(
               `${apiBase}/artifacts/${encodeURIComponent(input.artifactId)}/preview`,
             ),
           };
         }
 
-        const resolved = await requestJson<any>(
-          `${apiBase}/resources/resolve`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              artifact_id: input.artifactId,
-              url: input.url,
-              hint_type: input.hintType,
-              adapter_id: input.adapterId,
-            }),
-          },
-        );
+        const resolved = await requestJson<any>(`${apiBase}/resources/resolve`, {
+          method: "POST",
+          body: JSON.stringify({
+            artifact_id: input.artifactId,
+            url: input.url,
+            hint_type: input.hintType,
+            adapter_id: input.adapterId,
+          }),
+        });
 
         if (resolved) {
           return signResolvedValue(resolved, signProtectedUrl);
@@ -529,12 +474,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
     },
     client: {
       plugins: {
-        call: async <T>(
-          pluginId: string,
-          path: string,
-          method = "GET",
-          body?: any,
-        ): Promise<T> => {
+        call: async <T>(pluginId: string, path: string, method = "GET", body?: any): Promise<T> => {
           const cleanPath = path.startsWith("/") ? path.slice(1) : path;
           const url = `${pluginApiBase}/plugins/${pluginId}/${cleanPath}`;
           const res = await authFetch(url, {
@@ -563,34 +503,25 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
         const data = await res.json();
         const logos = (data?.logos || {}) as Record<string, string | null>;
         const origin = assetBase.replace(/\/api(?:\/(v1|v2))?\/?$/, "");
-        const signIfProtected = (value: string | null) =>
-          value ? signProtectedUrl(value) : value;
+        const signIfProtected = (value: string | null) => (value ? signProtectedUrl(value) : value);
         const normalize = (value: string | null, pluginName?: string) => {
           if (!value) return null;
           if (value.startsWith("http://") || value.startsWith("https://"))
             return signIfProtected(value);
-          if (value.startsWith("//"))
-            return signIfProtected(`${window.location.protocol}${value}`);
-          if (value.startsWith("/api/"))
-            return signIfProtected(`${origin}${value}`);
-          if (value.startsWith("/plugins/"))
-            return signIfProtected(`${origin}${value}`);
+          if (value.startsWith("//")) return signIfProtected(`${window.location.protocol}${value}`);
+          if (value.startsWith("/api/")) return signIfProtected(`${origin}${value}`);
+          if (value.startsWith("/plugins/")) return signIfProtected(`${origin}${value}`);
           if (pluginName && value.startsWith(`/${pluginName}/static/`))
             return signIfProtected(`${origin}/plugins${value}`);
-          if (value.startsWith("/"))
-            return signIfProtected(`${origin}${value}`);
+          if (value.startsWith("/")) return signIfProtected(`${origin}${value}`);
           return signIfProtected(`${origin}/${value}`);
         };
         return Object.fromEntries(
-          Object.entries(logos).map(([key, value]) => [
-            key,
-            normalize(value, key),
-          ]),
+          Object.entries(logos).map(([key, value]) => [key, normalize(value, key)]),
         );
       },
       getActions: (location: string) => getPluginActionsByLocation(location),
-      getComponents: (location: string) =>
-        getPluginComponentsByLocation(location),
+      getComponents: (location: string) => getPluginComponentsByLocation(location),
       getApi: (requestedPluginId?: string): EmbeddrAPI =>
         requestedPluginId
           ? createPluginScopedAPI(api, requestedPluginId, {
@@ -617,9 +548,7 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
           plugin_name: input.plugin_name,
           job_type: input.job_type || input.action_id,
           inputs: input.inputs || input.parameters || {},
-          ...(input.primary_artifact_id
-            ? { primary_artifact_id: input.primary_artifact_id }
-            : {}),
+          ...(input.primary_artifact_id ? { primary_artifact_id: input.primary_artifact_id } : {}),
         };
         return requestJson(`${apiBase}/executions`, {
           method: "POST",
@@ -642,25 +571,18 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
         if (params?.plugin_name) search.set("plugin_name", params.plugin_name);
         if (params?.status) search.set("status", params.status);
         if (params?.type) search.set("type", params.type);
-        if (params?.created_after)
-          search.set("created_after", params.created_after);
-        if (params?.created_before)
-          search.set("created_before", params.created_before);
+        if (params?.created_after) search.set("created_after", params.created_after);
+        if (params?.created_before) search.set("created_before", params.created_before);
         if (params?.q) search.set("q", params.q);
-        if (params?.limit !== undefined)
-          search.set("limit", String(params.limit));
-        if (params?.offset !== undefined)
-          search.set("offset", String(params.offset));
+        if (params?.limit !== undefined) search.set("limit", String(params.limit));
+        if (params?.offset !== undefined) search.set("offset", String(params.offset));
         const qs = search.toString();
-        return requestJson<any[]>(`${apiBase}/executions${qs ? `?${qs}` : ""}`);
+        return requestJson<Array<any>>(`${apiBase}/executions${qs ? `?${qs}` : ""}`);
       },
       cancel: (executionId: string) =>
-        requestJson(
-          `${apiBase}/executions/${encodeURIComponent(executionId)}/cancel`,
-          {
-            method: "POST",
-          },
-        ),
+        requestJson(`${apiBase}/executions/${encodeURIComponent(executionId)}/cancel`, {
+          method: "POST",
+        }),
       nudge: (
         executionId: string,
         input:
@@ -672,13 +594,10 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
             },
       ) => {
         const payload = typeof input === "string" ? { message: input } : input;
-        return requestJson(
-          `${apiBase}/executions/${encodeURIComponent(executionId)}/nudge`,
-          {
-            method: "POST",
-            body: JSON.stringify(payload),
-          },
-        );
+        return requestJson(`${apiBase}/executions/${encodeURIComponent(executionId)}/nudge`, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
       },
     },
     lotus: {
@@ -692,10 +611,8 @@ export function createEmbeddrAPI(config: EmbeddrAPIConfig): EmbeddrAPI {
       list: (input) => client.listLotusCapabilities(input),
     },
     windows: {
-      open: (id, title, componentId, props) =>
-        windowsApi.open(id, title, componentId, props),
-      spawn: (componentId, title, props) =>
-        windowsApi.spawn(componentId, title, props),
+      open: (id, title, componentId, props) => windowsApi.open(id, title, componentId, props),
+      spawn: (componentId, title, props) => windowsApi.spawn(componentId, title, props),
       register: () => {},
       getState: windowsApi.getState,
       list: windowsApi.list ?? (() => []),
@@ -731,18 +648,13 @@ export function createPluginScopedAPI(
       const baseUrl =
         assetBase ||
         config.backendUrl ||
-        (typeof window !== "undefined"
-          ? window.location.origin
-          : "http://localhost");
+        (typeof window !== "undefined" ? window.location.origin : "http://localhost");
       const parsed = new URL(url, baseUrl);
       const assetOrigin = new URL(baseUrl).origin;
-      const windowOrigin =
-        typeof window !== "undefined" ? window.location.origin : assetOrigin;
-      const isInternal =
-        parsed.origin === assetOrigin || parsed.origin === windowOrigin;
+      const windowOrigin = typeof window !== "undefined" ? window.location.origin : assetOrigin;
+      const isInternal = parsed.origin === assetOrigin || parsed.origin === windowOrigin;
       const isProtectedPath =
-        parsed.pathname.startsWith("/api/") ||
-        parsed.pathname.startsWith("/plugins/");
+        parsed.pathname.startsWith("/api/") || parsed.pathname.startsWith("/plugins/");
       if (!isInternal || !isProtectedPath) return parsed.toString();
       parsed.searchParams.set("api_key", config.apiKey);
       return parsed.toString();
@@ -752,16 +664,13 @@ export function createPluginScopedAPI(
   };
 
   const request = async <T>(path: string, init?: RequestInit) => {
-    const res = await authFetch(
-      resolvePluginRequestUrl(pluginBase, assetBase, path),
-      {
-        ...init,
-        headers: shouldAddJsonContentType(init)
-          ? { "Content-Type": "application/json", ...(init?.headers || {}) }
-          : init?.headers,
-        credentials: init?.credentials ?? "include",
-      },
-    );
+    const res = await authFetch(resolvePluginRequestUrl(pluginBase, assetBase, path), {
+      ...init,
+      headers: shouldAddJsonContentType(init)
+        ? { "Content-Type": "application/json", ...(init?.headers || {}) }
+        : init?.headers,
+      credentials: init?.credentials ?? "include",
+    });
     if (!res.ok) throw new Error(await res.text());
     return (await res.json()) as T;
   };
@@ -773,9 +682,7 @@ export function createPluginScopedAPI(
       getPluginUrl: (path: string) => {
         const clean = path.replace(/^\//, "");
         return signProtectedUrl(
-          assetBase
-            ? `${assetBase}/plugins/${pluginId}/${clean}`
-            : `/plugins/${pluginId}/${clean}`,
+          assetBase ? `${assetBase}/plugins/${pluginId}/${clean}` : `/plugins/${pluginId}/${clean}`,
         );
       },
     },

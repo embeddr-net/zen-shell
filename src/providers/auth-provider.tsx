@@ -41,7 +41,7 @@ export interface AuthState {
   /** Current operator (null if not authenticated) */
   operator: AuthOperator | null;
   /** Current permissions */
-  permissions: string[];
+  permissions: Array<string>;
   /** Error from last auth operation */
   error: string | null;
   /** Loading state for auth operations */
@@ -52,7 +52,11 @@ export interface AuthState {
   /** Logout and clear session */
   logout: () => Promise<void>;
   /** Bootstrap first admin user (db mode, no users) */
-  bootstrap: (username: string, password: string, displayName?: string) => Promise<{ apiKey?: string }>;
+  bootstrap: (
+    username: string,
+    password: string,
+    displayName?: string,
+  ) => Promise<{ apiKey?: string }>;
   /** Refresh auth state from server */
   refresh: () => Promise<void>;
 }
@@ -68,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [needsBootstrap, setNeedsBootstrap] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [operator, setOperator] = useState<AuthOperator | null>(null);
-  const [permissions, setPermissions] = useState<string[]>([]);
+  const [permissions, setPermissions] = useState<Array<string>>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

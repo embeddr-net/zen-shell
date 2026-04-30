@@ -57,7 +57,7 @@ export interface ZenFinderKindOption {
   icon?: string;
 }
 
-export const DEFAULT_KIND_OPTIONS: ZenFinderKindOption[] = [
+export const DEFAULT_KIND_OPTIONS: Array<ZenFinderKindOption> = [
   { value: "panel", label: "Panels", icon: "Cpu" },
   { value: "action", label: "Actions", icon: "Zap" },
   { value: "nav", label: "Navigation", icon: "Compass" },
@@ -102,7 +102,7 @@ export interface ZenFinderShebangConfig {
 
 export interface ZenFinderConfig {
   /** App-specific local items (commands, nav, panels) */
-  localItems: ZenFinderItem[];
+  localItems: Array<ZenFinderItem>;
 
   /** Enable semantic artifact search via search.text */
   enableSearch?: boolean;
@@ -117,7 +117,7 @@ export interface ZenFinderConfig {
   textProvider?: string;
 
   /** Kind filter options (defaults to DEFAULT_KIND_OPTIONS) */
-  kindOptions?: ZenFinderKindOption[];
+  kindOptions?: Array<ZenFinderKindOption>;
 
   /** Called when user activates an item (Enter/click) */
   onDispatch: (item: ZenFinderItem) => void;

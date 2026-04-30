@@ -12,7 +12,7 @@ export type ToastAPI = {
   success: (message: string) => void;
   error: (message: string) => void;
   info: (message: string) => void;
-  items: ToastItem[];
+  items: Array<ToastItem>;
   dismiss: (id: string) => void;
 };
 
@@ -47,15 +47,12 @@ export const ZenToastProvider = ({
   autoDismiss = 4000,
   maxToasts = 5,
 }: ZenToastProviderProps) => {
-  const [items, setItems] = useState<ToastItem[]>([]);
+  const [items, setItems] = useState<Array<ToastItem>>([]);
 
   const add = useCallback(
     (type: ToastType, message: string) => {
       const id = `toast-${++toastCounter}`;
-      setItems((prev) => [
-        ...prev.slice(-(maxToasts - 1)),
-        { id, type, message },
-      ]);
+      setItems((prev) => [...prev.slice(-(maxToasts - 1)), { id, type, message }]);
       if (autoDismiss > 0) {
         setTimeout(() => {
           setItems((prev) => prev.filter((t) => t.id !== id));
@@ -93,14 +90,13 @@ const ZenToastContainer = ({
   items,
   dismiss,
 }: {
-  items: ToastItem[];
+  items: Array<ToastItem>;
   dismiss: (id: string) => void;
 }) => {
   if (!items.length) return null;
 
   const typeStyles: Record<ToastType, string> = {
-    success:
-      "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300",
+    success: "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300",
     error: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
     info: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300",
   };

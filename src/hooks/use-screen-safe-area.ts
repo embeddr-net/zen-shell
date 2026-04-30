@@ -153,4 +153,3 @@ export function useScreenSafeArea({
     [insets.bottom, insets.left, insets.right, insets.top],
   );
 }
-

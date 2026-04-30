@@ -5,7 +5,7 @@ export type PluginManifestItem = {
 };
 
 export type PluginManifest = {
-  plugins: PluginManifestItem[];
+  plugins: Array<PluginManifestItem>;
 };
 
 export type PluginManifestConfig = {
@@ -19,13 +19,9 @@ export function resolvePluginManifestUrl(config?: PluginManifestConfig) {
     return `${config.publicUrl.replace(/\/$/, "")}/plugins/index.json`;
   }
   if (typeof window !== "undefined") {
-    const runtimeManifest = (window as any).__EMBEDDR_PLUGIN_MANIFEST__ as
-      | string
-      | undefined;
+    const runtimeManifest = (window as any).__EMBEDDR_PLUGIN_MANIFEST__ as string | undefined;
     if (runtimeManifest) return runtimeManifest;
-    const runtimePublic = (window as any).__EMBEDDR_PUBLIC_URL__ as
-      | string
-      | undefined;
+    const runtimePublic = (window as any).__EMBEDDR_PUBLIC_URL__ as string | undefined;
     if (runtimePublic) {
       return `${runtimePublic.replace(/\/$/, "")}/plugins/index.json`;
     }

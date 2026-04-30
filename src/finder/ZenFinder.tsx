@@ -7,13 +7,13 @@
 import React from "react";
 import { Dialog, DialogContent } from "@embeddr/react-ui/ui";
 import { cn } from "@embeddr/react-ui/lib/utils";
-import type { ZenFinderItem, ZenFinderMode, ZenFinderConfig } from "./finder-types";
 import { DEFAULT_KIND_OPTIONS } from "./finder-types";
 import { parseFinderQuery } from "./finder-query";
 import { filterLocalItems, mergeDedup, sortFinderResults } from "./finder-scoring";
 import { ZenFinderSearchBar } from "./ZenFinderSearchBar";
 import { ZenFinderResultsList } from "./ZenFinderResultsList";
 import { ZenFinderPreviewPane } from "./ZenFinderPreviewPane";
+import type { ZenFinderConfig, ZenFinderItem, ZenFinderMode } from "./finder-types";
 
 interface ZenFinderProps {
   open: boolean;
@@ -30,7 +30,7 @@ interface ZenFinderProps {
     shebangArgs: string;
     tags: Array<{ key: string; value?: string }>;
     raw: string;
-  }) => Promise<ZenFinderItem[]>;
+  }) => Promise<Array<ZenFinderItem>>;
 
   /** Optional chat send handler for lotus mode */
   onChatSend?: (message: string) => void;
@@ -50,7 +50,7 @@ export function ZenFinder({
   footerHint,
 }: ZenFinderProps) {
   const [query, setQuery] = React.useState("");
-  const [items, setItems] = React.useState<ZenFinderItem[]>([]);
+  const [items, setItems] = React.useState<Array<ZenFinderItem>>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [mode, setMode] = React.useState<ZenFinderMode>("search");
@@ -127,9 +127,7 @@ export function ZenFinder({
         const serverItems = await onSearch({ text, shebang, shebangArgs, tags, raw });
         if (cancelled) return;
 
-        const merged = sortFinderResults(
-          mergeDedup(shebang ? [] : filteredLocal, serverItems),
-        );
+        const merged = sortFinderResults(mergeDedup(shebang ? [] : filteredLocal, serverItems));
         setItems(merged);
         setSelectedId((cur) => cur ?? merged[0]?.id ?? null);
       } catch {

@@ -32,11 +32,7 @@ export const ZenClientProvider = ({
     [backendUrl, apiKey],
   );
 
-  return (
-    <ZenClientContext.Provider value={value}>
-      {children}
-    </ZenClientContext.Provider>
-  );
+  return <ZenClientContext.Provider value={value}>{children}</ZenClientContext.Provider>;
 };
 
 export const useZenClient = () => useContext(ZenClientContext);

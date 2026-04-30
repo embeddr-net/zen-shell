@@ -1,10 +1,4 @@
-import {
-  Card,
-  ScrollArea,
-  Separator,
-  Badge,
-  useOptionalEmbeddrAPI,
-} from "@embeddr/react-ui";
+import { Badge, Card, ScrollArea, Separator, useOptionalEmbeddrAPI } from "@embeddr/react-ui";
 import { usePluginManifestContext } from "../context/PluginManifestContext";
 
 export function ClientPanel() {
@@ -21,9 +15,7 @@ export function ClientPanel() {
         <div className="text-lg font-semibold">Client</div>
         <Badge variant={apiKey ? "default" : "secondary"}>{modeLabel}</Badge>
       </div>
-      <div className="text-xs text-muted-foreground">
-        {backendUrl || "No backend configured"}
-      </div>
+      <div className="text-xs text-muted-foreground">{backendUrl || "No backend configured"}</div>
       <Separator />
       <ScrollArea className="flex-1 min-h-0 pr-2" type="always" hideScrollbars>
         <div className="space-y-3 text-sm">
@@ -49,12 +41,8 @@ export function ClientPanel() {
                     key={plugin.id}
                     className="flex items-center justify-between rounded-md border border-border/60 bg-secondary/20 px-2 py-1"
                   >
-                    <div className="text-xs font-medium">
-                      {plugin.name || plugin.id}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">
-                      {plugin.id}
-                    </div>
+                    <div className="text-xs font-medium">{plugin.name || plugin.id}</div>
+                    <div className="text-[10px] text-muted-foreground">{plugin.id}</div>
                   </div>
                 ))}
               </div>

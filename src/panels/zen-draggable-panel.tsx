@@ -1,11 +1,7 @@
-import React, { useCallback, useMemo, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { DraggablePanel as LibDraggablePanel } from "@embeddr/react-ui/components/embeddr";
 import { cn } from "@embeddr/react-ui/lib/utils";
-import {
-  useZenPanelUiStoreContext,
-  useZenWindowStoreContext,
-  useZenStores,
-} from "../stores";
+import { useZenPanelUiStoreContext, useZenStores, useZenWindowStoreContext } from "../stores";
 
 // Use the Props from the library as base, but extend with Zen-specifics
 interface ZenDraggablePanelProps {
@@ -90,26 +86,17 @@ export function ZenDraggablePanel({
   const togglePin = useZenWindowStoreContext((s) => s.togglePin);
   const openWindow = useZenWindowStoreContext((s) => s.openWindow);
   const mergeWindows = useZenWindowStoreContext((s) => s.mergeWindows);
-  const setMergeHoverTarget = useZenWindowStoreContext(
-    (s) => s.setMergeHoverTarget,
-  );
+  const setMergeHoverTarget = useZenWindowStoreContext((s) => s.setMergeHoverTarget);
 
   // --- Targeted subscriptions: only re-render when THIS panel's data changes ---
   const windowState = useZenWindowStoreContext((s) => s.windows[id]);
   const backdropWindowId = useZenWindowStoreContext((s) => s.backdropWindowId);
-  const isMergeHoverTarget = useZenWindowStoreContext(
-    (s) => s.mergeHoverTargetId === id,
-  );
-  const panelGroupingEnabled = useZenWindowStoreContext(
-    (s) => s.panelGroupingEnabled,
-  );
+  const isMergeHoverTarget = useZenWindowStoreContext((s) => s.mergeHoverTargetId === id);
+  const panelGroupingEnabled = useZenWindowStoreContext((s) => s.panelGroupingEnabled);
   // Targeted: only this panel's order index (number), not the whole array
-  const orderIndex = useZenWindowStoreContext((s) =>
-    (s.panelOrder as string[]).indexOf(id),
-  );
+  const orderIndex = useZenWindowStoreContext((s) => s.panelOrder.indexOf(id));
   const isLastInOrder = useZenWindowStoreContext(
-    (s) =>
-      (s.panelOrder as string[])[(s.panelOrder as string[]).length - 1] === id,
+    (s) => s.panelOrder[s.panelOrder.length - 1] === id,
   );
   const panelConstraints = useZenWindowStoreContext((s) => s.panelConstraints);
   const panelUiState = useZenPanelUiStoreContext((s) => s.panels[id]);
@@ -119,9 +106,7 @@ export function ZenDraggablePanel({
   // Get raw store for imperative access without subscribing
   const { windowStore } = useZenStores();
   const lastPositionRef = React.useRef<{ x: number; y: number } | null>(null);
-  const lastSizeRef = React.useRef<{ width: number; height: number } | null>(
-    null,
-  );
+  const lastSizeRef = React.useRef<{ width: number; height: number } | null>(null);
   const lastMouseRef = React.useRef<{ x: number; y: number } | null>(null);
   const isInteractingRef = React.useRef(false);
   // Initialize from controlled prop → Zustand persisted state → default
@@ -134,15 +119,19 @@ export function ZenDraggablePanel({
       const dx = Math.abs(prev.x - pos.x);
       const dy = Math.abs(prev.y - pos.y);
       if (dx > 5 || dy > 5) {
-        console.warn(`[zen:${id}] setLocalPosition JUMP`, { from: prev, to: pos, dx, dy, interacting: isInteractingRef.current });
+        console.warn(`[zen:${id}] setLocalPosition JUMP`, {
+          from: prev,
+          to: pos,
+          dx,
+          dy,
+          interacting: isInteractingRef.current,
+        });
         console.trace();
       }
     }
     _setLocalPosition(pos);
   };
-  const [localSize, setLocalSize] = useState(
-    controlledSize ?? windowState?.size ?? defaultSize,
-  );
+  const [localSize, setLocalSize] = useState(controlledSize ?? windowState?.size ?? defaultSize);
   const positionRef = React.useRef(localPosition);
   const sizeRef = React.useRef(localSize);
 
@@ -176,16 +165,7 @@ export function ZenDraggablePanel({
         },
       });
     }
-  }, [
-    id,
-    title,
-    windowState,
-    openWindow,
-    defaultPosition,
-    defaultSize,
-    minWidth,
-    minHeight,
-  ]);
+  }, [id, title, windowState, openWindow, defaultPosition, defaultSize, minWidth, minHeight]);
 
   useEffect(() => {
     if (!windowState) return;
@@ -212,7 +192,12 @@ export function ZenDraggablePanel({
         const cur = positionRef.current;
         const dx = Math.abs(cur.x - controlledPosition.x);
         const dy = Math.abs(cur.y - controlledPosition.y);
-        if (dx > 2 || dy > 2) console.log(`[zen:${id}] SYNC controlledPosition`, { from: cur, to: controlledPosition, delta: { dx, dy } });
+        if (dx > 2 || dy > 2)
+          console.log(`[zen:${id}] SYNC controlledPosition`, {
+            from: cur,
+            to: controlledPosition,
+            delta: { dx, dy },
+          });
       }
       setLocalPosition(controlledPosition);
     }
@@ -226,10 +211,7 @@ export function ZenDraggablePanel({
   }, [controlledSize]);
 
   const clampPositionToViewport = useCallback(
-    (
-      nextPosition: { x: number; y: number },
-      nextSize: { width: number; height: number },
-    ) => {
+    (nextPosition: { x: number; y: number }, nextSize: { width: number; height: number }) => {
       if (!panelConstraints.enabled || typeof window === "undefined") {
         return nextPosition;
       }
@@ -249,42 +231,25 @@ export function ZenDraggablePanel({
   );
 
   const clampSizeToViewport = useCallback(
-    (
-      nextSize: { width: number; height: number },
-      atPosition: { x: number; y: number },
-    ) => {
+    (nextSize: { width: number; height: number }, atPosition: { x: number; y: number }) => {
       if (!panelConstraints.enabled || typeof window === "undefined") {
         return nextSize;
       }
 
       const insets = panelConstraints.safeArea;
-      const maxWidth = Math.max(
-        minWidth,
-        window.innerWidth - insets.right - atPosition.x,
-      );
-      const maxHeight = Math.max(
-        minHeight,
-        window.innerHeight - insets.bottom - atPosition.y,
-      );
+      const maxWidth = Math.max(minWidth, window.innerWidth - insets.right - atPosition.x);
+      const maxHeight = Math.max(minHeight, window.innerHeight - insets.bottom - atPosition.y);
 
       return {
         width: Math.min(Math.max(nextSize.width, minWidth), maxWidth),
         height: Math.min(Math.max(nextSize.height, minHeight), maxHeight),
       };
     },
-    [
-      minHeight,
-      minWidth,
-      panelConstraints.enabled,
-      panelConstraints.safeArea,
-    ],
+    [minHeight, minWidth, panelConstraints.enabled, panelConstraints.safeArea],
   );
 
   const snapPositionToEdges = useCallback(
-    (
-      nextPosition: { x: number; y: number },
-      nextSize: { width: number; height: number },
-    ) => {
+    (nextPosition: { x: number; y: number }, nextSize: { width: number; height: number }) => {
       if (!panelConstraints.enabled || typeof window === "undefined") {
         return nextPosition;
       }
@@ -308,11 +273,7 @@ export function ZenDraggablePanel({
 
       return { x, y };
     },
-    [
-      panelConstraints.enabled,
-      panelConstraints.safeArea,
-      panelConstraints.snapThreshold,
-    ],
+    [panelConstraints.enabled, panelConstraints.safeArea, panelConstraints.snapThreshold],
   );
 
   const isPinned = pinned ?? windowState?.isPinned ?? false;
@@ -321,8 +282,7 @@ export function ZenDraggablePanel({
   const isBackdrop = backdropWindowId === id;
 
   const effectiveShowTitle = controlledShowTitle ?? panelUiState?.showTitle ?? true;
-  const effectiveTitlePosition =
-    controlledTitlePosition ?? panelUiState?.titlePosition ?? "top";
+  const effectiveTitlePosition = controlledTitlePosition ?? panelUiState?.titlePosition ?? "top";
   const effectiveIsFolded = controlledIsFolded ?? panelUiState?.isFolded ?? false;
 
   useEffect(() => {
@@ -367,18 +327,14 @@ export function ZenDraggablePanel({
     if (!isInteractingRef.current) return null;
     const pointer = lastMouseRef.current;
     if (!pointer) return null;
-    const currentEl = document.querySelector(
-      `[data-panel-id="${id}"]`,
-    ) as HTMLElement | null;
+    const currentEl = document.querySelector(`[data-panel-id="${id}"]`);
     if (!currentEl) return null;
     const centerX = pointer.x;
     const centerY = pointer.y;
 
     // Read windows imperatively to avoid subscription-based re-renders
     const currentWindows = windowStore.getState().windows;
-    const candidates = document.querySelectorAll(
-      '[data-panel-drop-zone="tab"]',
-    );
+    const candidates = document.querySelectorAll('[data-panel-drop-zone="tab"]');
     for (const node of Array.from(candidates)) {
       const el = node as HTMLElement;
       const targetId = el.getAttribute("data-panel-id");
@@ -398,11 +354,13 @@ export function ZenDraggablePanel({
 
   const handlePositionChange = useCallback(
     (pos: { x: number; y: number }) => {
-      const constrained = clampPositionToViewport(
-        pos,
-        controlledSize ?? sizeRef.current,
-      );
-      if ((window as any).__PANEL_DEBUG) console.log(`[zen:${id}] handlePositionChange`, { raw: pos, constrained, interacting: isInteractingRef.current });
+      const constrained = clampPositionToViewport(pos, controlledSize ?? sizeRef.current);
+      if ((window as any).__PANEL_DEBUG)
+        console.log(`[zen:${id}] handlePositionChange`, {
+          raw: pos,
+          constrained,
+          interacting: isInteractingRef.current,
+        });
       lastPositionRef.current = constrained;
       setLocalPosition(constrained);
       isInteractingRef.current = true;
@@ -436,24 +394,14 @@ export function ZenDraggablePanel({
       setLocalSize(constrainedSize);
       onSizeChange?.(constrainedSize);
     },
-    [
-      id,
-      updateWindow,
-      onSizeChange,
-      clampSizeToViewport,
-      controlledPosition,
-      windowState,
-    ],
+    [id, updateWindow, onSizeChange, clampSizeToViewport, controlledPosition, windowState],
   );
 
   const handleDragEnd = useCallback(() => {
     const rawPos = lastPositionRef.current;
     const sizeForClamp = controlledSize ?? sizeRef.current;
     const snappedPos = rawPos
-      ? snapPositionToEdges(
-          clampPositionToViewport(rawPos, sizeForClamp),
-          sizeForClamp,
-        )
+      ? snapPositionToEdges(clampPositionToViewport(rawPos, sizeForClamp), sizeForClamp)
       : null;
     if (snappedPos) {
       setLocalPosition(snappedPos);
@@ -483,11 +431,15 @@ export function ZenDraggablePanel({
   ]);
 
   const handleResizeEnd = useCallback(() => {
-    if ((window as any).__PANEL_DEBUG) console.log(`[zen:${id}] handleResizeEnd`, { lastPos: lastPositionRef.current, ctrlPos: controlledPosition, posRef: positionRef.current, lastSize: lastSizeRef.current });
+    if ((window as any).__PANEL_DEBUG)
+      console.log(`[zen:${id}] handleResizeEnd`, {
+        lastPos: lastPositionRef.current,
+        ctrlPos: controlledPosition,
+        posRef: positionRef.current,
+        lastSize: lastSizeRef.current,
+      });
     const currentPos = lastPositionRef.current ?? controlledPosition ?? positionRef.current;
-    const size = lastSizeRef.current
-      ? clampSizeToViewport(lastSizeRef.current, currentPos)
-      : null;
+    const size = lastSizeRef.current ? clampSizeToViewport(lastSizeRef.current, currentPos) : null;
     // Persist both size AND position — position changes during NW/N/W resize
     const updates: Record<string, any> = {};
     if (size) {
@@ -503,14 +455,7 @@ export function ZenDraggablePanel({
     }
     isInteractingRef.current = false;
     onResizeEnd?.();
-  }, [
-    id,
-    onResizeEnd,
-    updateWindow,
-    clampSizeToViewport,
-    controlledPosition,
-    onSizeChange,
-  ]);
+  }, [id, onResizeEnd, updateWindow, clampSizeToViewport, controlledPosition, onSizeChange]);
 
   useEffect(() => {
     if (!panelConstraints.enabled) return;
@@ -529,8 +474,7 @@ export function ZenDraggablePanel({
       );
 
       const posChanged =
-        currentPos.x !== positionRef.current.x ||
-        currentPos.y !== positionRef.current.y;
+        currentPos.x !== positionRef.current.x || currentPos.y !== positionRef.current.y;
       const sizeChanged =
         currentSize.width !== sizeRef.current.width ||
         currentSize.height !== sizeRef.current.height;

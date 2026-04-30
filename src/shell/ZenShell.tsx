@@ -1,11 +1,10 @@
 import React from "react";
 import { ThemeProvider } from "../providers/theme-provider";
-import { ZenStoreProvider } from "../stores";
+import { ZenStoreProvider, useZenWindowStoreContext } from "../stores";
 import { ZenPanelManager } from "../panels/zen-default-panel-manager";
-import { useZenWindowStoreContext } from "../stores";
-import type { ZenStoreBundle } from "../stores";
 import { registerZenGlobals } from "../runtime/zen-globals";
 import { useScreenSafeArea } from "../hooks/use-screen-safe-area";
+import type { ZenStoreBundle } from "../stores";
 
 type PanelSafeAreaInput =
   | number
@@ -62,17 +61,12 @@ const ZenWindowBehaviorSync = ({
   safeAreaEdgePadding = 8,
   safeAreaOverlayCollapsedThresholdPx = 10,
 }: ZenShellWindowBehaviorProps) => {
-  const setPanelConstraints = useZenWindowStoreContext(
-    (state) => state.setPanelConstraints,
-  );
+  const setPanelConstraints = useZenWindowStoreContext((state) => state.setPanelConstraints);
   const setPanelGroupingEnabled = useZenWindowStoreContext(
     (state) => state.setPanelGroupingEnabled,
   );
 
-  const normalizedSafeArea = React.useMemo(
-    () => normalizeSafeArea(panelSafeArea),
-    [panelSafeArea],
-  );
+  const normalizedSafeArea = React.useMemo(() => normalizeSafeArea(panelSafeArea), [panelSafeArea]);
   const measuredSafeArea = useScreenSafeArea({
     enabled: autoPanelSafeArea,
     commandBarElementId: safeAreaElementId,
@@ -156,9 +150,7 @@ export const ZenShell = ({
         autoPanelSafeArea={autoPanelSafeArea}
         safeAreaElementId={safeAreaElementId}
         safeAreaEdgePadding={safeAreaEdgePadding}
-        safeAreaOverlayCollapsedThresholdPx={
-          safeAreaOverlayCollapsedThresholdPx
-        }
+        safeAreaOverlayCollapsedThresholdPx={safeAreaOverlayCollapsedThresholdPx}
       />
       {children}
       {renderPanels ? <ZenPanelManager /> : null}

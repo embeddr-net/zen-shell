@@ -9,10 +9,7 @@ export type ZenPanelUiEntry = {
 
 export type ZenPanelUiState = {
   panels: Record<string, ZenPanelUiEntry>;
-  ensurePanelUi: (
-    id: string,
-    defaults?: Partial<ZenPanelUiEntry>,
-  ) => ZenPanelUiEntry;
+  ensurePanelUi: (id: string, defaults?: Partial<ZenPanelUiEntry>) => ZenPanelUiEntry;
   setPanelUi: (id: string, updates: Partial<ZenPanelUiEntry>) => void;
   clearPanelUi: (id: string) => void;
 };
@@ -41,9 +38,7 @@ function resolvePanelUiEntry(
   defaults?: Partial<ZenPanelUiEntry>,
 ): ZenPanelUiEntry {
   const base = { ...DEFAULT_PANEL_UI, ...defaults };
-  const rawLegacyTitlePosition = readLegacyValue<"top" | "bottom">(
-    `panel-${id}-title-position`,
-  );
+  const rawLegacyTitlePosition = readLegacyValue<"top" | "bottom">(`panel-${id}-title-position`);
   const legacyTitlePosition =
     rawLegacyTitlePosition === "bottom" || rawLegacyTitlePosition === "top"
       ? rawLegacyTitlePosition
@@ -51,25 +46,15 @@ function resolvePanelUiEntry(
 
   return {
     showTitle:
-      current?.showTitle ??
-      readLegacyValue<boolean>(`panel-${id}-show-title`) ??
-      base.showTitle,
-    titlePosition:
-      current?.titlePosition ??
-      legacyTitlePosition ??
-      base.titlePosition,
-    isFolded:
-      current?.isFolded ??
-      readLegacyValue<boolean>(`panel-${id}-folded`) ??
-      base.isFolded,
+      current?.showTitle ?? readLegacyValue<boolean>(`panel-${id}-show-title`) ?? base.showTitle,
+    titlePosition: current?.titlePosition ?? legacyTitlePosition ?? base.titlePosition,
+    isFolded: current?.isFolded ?? readLegacyValue<boolean>(`panel-${id}-folded`) ?? base.isFolded,
   };
 }
 
 function entriesEqual(a: ZenPanelUiEntry, b: ZenPanelUiEntry) {
   return (
-    a.showTitle === b.showTitle &&
-    a.titlePosition === b.titlePosition &&
-    a.isFolded === b.isFolded
+    a.showTitle === b.showTitle && a.titlePosition === b.titlePosition && a.isFolded === b.isFolded
   );
 }
 

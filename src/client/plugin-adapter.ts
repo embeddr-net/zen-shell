@@ -18,7 +18,7 @@ export const createPluginLoaderAdapter = ({
         credentials: "include",
       });
       if (!res.ok) return [];
-      return (await res.json()) as PluginManifest[];
+      return (await res.json()) as Array<PluginManifest>;
     },
     resolveScriptUrl: (manifest) => {
       const plugin = manifest as any;

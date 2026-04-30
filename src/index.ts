@@ -17,19 +17,13 @@ export {
   getPluginComponentsByLocation,
 } from "./plugins/context-actions";
 export type { PluginRegistryState } from "./plugins/registry";
-export {
-  loadExternalPlugins,
-  createVirtualPluginDefinition,
-} from "./plugins/loader";
+export { loadExternalPlugins, createVirtualPluginDefinition } from "./plugins/loader";
 export type { PluginManifest, PluginLoaderAdapter } from "./plugins/loader";
 export { UmdPanelHost } from "./panels/umd-panel-host";
 export type { UmdPanelHostProps } from "./panels/umd-panel-host";
 export { ZenDraggablePanel } from "./panels/zen-draggable-panel";
 export { ZenUmdPanelManager } from "./panels/zen-panel-manager";
-export type {
-  ZenInspection,
-  ZenFrontendComponent,
-} from "./panels/zen-panel-manager";
+export type { ZenInspection, ZenFrontendComponent } from "./panels/zen-panel-manager";
 export {
   ZenPluginPanelManager,
   type ZenPluginPanelManagerAdditionalSettingsArgs,
@@ -49,18 +43,11 @@ export {
   getEntryKey,
   resolvePluginComponent,
 } from "./panels/plugin-components";
-export type {
-  PluginComponentEntry,
-  ResolvedPluginComponent,
-} from "./panels/plugin-components";
+export type { PluginComponentEntry, ResolvedPluginComponent } from "./panels/plugin-components";
 export { ZenShell } from "./shell/ZenShell";
 export type { ZenShellProps } from "./shell/ZenShell";
 export { useZenWindowStore } from "./windows/window-store";
-export type {
-  WindowState,
-  PanelConstraints,
-  PanelConstraintInsets,
-} from "./windows/window-store";
+export type { WindowState, PanelConstraints, PanelConstraintInsets } from "./windows/window-store";
 export {
   ZenStoreProvider,
   useZenStores,
@@ -109,18 +96,11 @@ export {
   updateNodeById,
 } from "./layouts/tiling";
 export type { TileDragPayload, TileDropZone, TileNode } from "./layouts/tiling";
-export type {
-  EmbeddrAPI,
-  PluginDefinition,
-  EmbeddrMessage,
-} from "@embeddr/react-ui/types";
+export type { EmbeddrAPI, PluginDefinition, EmbeddrMessage } from "@embeddr/react-ui/types";
 export { EmbeddrProvider, PluginContext } from "@embeddr/react-ui/context";
 
 // --- New shared infrastructure ---
-export {
-  ZenWebSocketProvider,
-  useZenWebSocket,
-} from "./providers/websocket-provider";
+export { ZenWebSocketProvider, useZenWebSocket } from "./providers/websocket-provider";
 export type {
   ZenWebSocketProviderProps,
   WebSocketState,
@@ -165,10 +145,7 @@ export type {
   PluginComponentEntry as PluginRuntimeComponentEntry,
 } from "./runtime/plugin-runtime";
 
-export {
-  PluginManifestProvider,
-  usePluginManifestContext,
-} from "./context/PluginManifestContext";
+export { PluginManifestProvider, usePluginManifestContext } from "./context/PluginManifestContext";
 
 export { ClientPanel } from "./components/ClientPanel";
 export { EmbeddrIdentity } from "./components/EmbeddrIdentity";
@@ -195,11 +172,7 @@ export type { FinderDispatchConfig, FinderDispatchHandler } from "./finder/zen-f
 export { ZenFinderSearchBar } from "./finder/ZenFinderSearchBar";
 export { ZenFinderResultsList } from "./finder/ZenFinderResultsList";
 export { ZenFinderPreviewPane } from "./finder/ZenFinderPreviewPane";
-export {
-  parseFinderQuery,
-  getTagValue,
-  RESERVED_TAG_KEYS,
-} from "./finder/finder-query";
+export { parseFinderQuery, getTagValue, RESERVED_TAG_KEYS } from "./finder/finder-query";
 export {
   norm,
   localScore,
@@ -207,9 +180,7 @@ export {
   filterLocalItems,
   sortFinderResults,
 } from "./finder/finder-scoring";
-export {
-  DEFAULT_KIND_OPTIONS,
-} from "./finder/finder-types";
+export { DEFAULT_KIND_OPTIONS } from "./finder/finder-types";
 export type {
   ZenFinderItem,
   ZenFinderItemKind,

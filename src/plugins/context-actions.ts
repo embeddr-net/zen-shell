@@ -11,10 +11,10 @@ function getPluginMap() {
   return usePluginRegistry.getState().plugins || {};
 }
 
-export function getPluginComponentsByLocation(location: string): LocationMatch[] {
+export function getPluginComponentsByLocation(location: string): Array<LocationMatch> {
   const plugins = getPluginMap();
   const activePluginIds = getActivePluginIds();
-  const out: LocationMatch[] = [];
+  const out: Array<LocationMatch> = [];
 
   for (const pluginId of activePluginIds) {
     const plugin = plugins[pluginId];
@@ -29,10 +29,10 @@ export function getPluginComponentsByLocation(location: string): LocationMatch[]
   return out;
 }
 
-export function getPluginActionsByLocation(location: string): LocationMatch[] {
+export function getPluginActionsByLocation(location: string): Array<LocationMatch> {
   const plugins = getPluginMap();
   const activePluginIds = getActivePluginIds();
-  const out: LocationMatch[] = [];
+  const out: Array<LocationMatch> = [];
 
   for (const pluginId of activePluginIds) {
     const plugin = plugins[pluginId];

@@ -1,0 +1,72 @@
+name: Release Zen Shell
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (build only, no publish)"
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.26.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "latest"
+          registry-url: "https://registry.npmjs.org"
+          cache: "pnpm"
+
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      # Determine npm dist-tag from version string
+      # e.g. 0.2.0-alpha.1 → "next", 0.2.0 → "latest"
+      - name: Determine dist-tag
+        id: dist-tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION"
+          if echo "$VERSION" | grep -qE '-(alpha|beta|rc|dev|canary)'; then
+            echo "tag=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          echo "Publishing v$(node -p "require('./package.json').version") with tag: ${{ steps.dist-tag.outputs.tag }}"
+          pnpm publish --access public --no-git-checks --provenance --tag ${{ steps.dist-tag.outputs.tag }}
+
+      - name: Dry run summary
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        run: |
+          echo "Dry run — build succeeded, skipping publish"
+          echo "Would publish v$(node -p "require('./package.json').version") with tag: ${{ steps.dist-tag.outputs.tag }}"

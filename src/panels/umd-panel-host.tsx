@@ -6,7 +6,7 @@ import { ensureUmdBundle } from "../runtime/umd-loader";
 import { ZenDraggablePanel } from "./zen-draggable-panel";
 
 type TabStrip = {
-  tabs: string[];
+  tabs: Array<string>;
   activeTabId?: string;
   titles?: Record<string, string>;
   onSelect?: (tabId: string) => void;
@@ -172,10 +172,7 @@ export function UmdPanelHost({
 
       if (!stripRect) return;
       const rects = tabStrip.tabs
-        .map(
-          (id: string) =>
-            tabButtonRefs.current.get(id)?.getBoundingClientRect() ?? null,
-        )
+        .map((id: string) => tabButtonRefs.current.get(id)?.getBoundingClientRect() ?? null)
         .filter((rect): rect is DOMRect => Boolean(rect));
 
       if (rects.length === 0) return;
@@ -197,11 +194,7 @@ export function UmdPanelHost({
 
     const handleUp = () => {
       const drag = dragRef.current;
-      if (
-        drag?.active &&
-        drag.mode === "reorder" &&
-        tabInsertIndexRef.current !== null
-      ) {
+      if (drag?.active && drag.mode === "reorder" && tabInsertIndexRef.current !== null) {
         tabStrip?.onMove?.(drag.tabId, tabInsertIndexRef.current);
       }
       dragRef.current = null;
@@ -285,9 +278,7 @@ export function UmdPanelHost({
                 onClick={() =>
                   setTabOffset((prev) => {
                     const viewportWidth = tabViewportRef.current?.clientWidth;
-                    const step = viewportWidth
-                      ? Math.max(80, viewportWidth - 60)
-                      : 140;
+                    const step = viewportWidth ? Math.max(80, viewportWidth - 60) : 140;
                     return Math.max(0, prev - step);
                   })
                 }
@@ -333,29 +324,21 @@ export function UmdPanelHost({
                       }}
                       title="Right-click to detach"
                     >
-                      <span className="max-w-24 truncate">
-                        {tabStrip.titles?.[tabId] || tabId}
-                      </span>
+                      <span className="max-w-24 truncate">{tabStrip.titles?.[tabId] || tabId}</span>
                     </button>
                   ))}
                 </div>
               </div>
               <button
                 className={`h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground ${
-                  tabOffset >= tabMaxOffset
-                    ? "opacity-30 pointer-events-none"
-                    : ""
+                  tabOffset >= tabMaxOffset ? "opacity-30 pointer-events-none" : ""
                 }`}
                 onClick={() =>
                   setTabOffset((prev) => {
                     const viewportWidth = tabViewportRef.current?.clientWidth;
-                    const step = viewportWidth
-                      ? Math.max(80, viewportWidth - 60)
-                      : 140;
+                    const step = viewportWidth ? Math.max(80, viewportWidth - 60) : 140;
                     const next = prev + step;
-                    return next >= tabMaxOffset - 4
-                      ? tabMaxOffset
-                      : Math.min(tabMaxOffset, next);
+                    return next >= tabMaxOffset - 4 ? tabMaxOffset : Math.min(tabMaxOffset, next);
                   })
                 }
                 aria-label="Scroll tabs right"
@@ -374,9 +357,7 @@ export function UmdPanelHost({
             className="h-full"
             style={{
               paddingTop:
-                tabStrip && tabStrip.tabs && tabStrip.tabs.length > 1
-                  ? "30px"
-                  : undefined,
+                tabStrip && tabStrip.tabs && tabStrip.tabs.length > 1 ? "30px" : undefined,
             }}
           >
             <EmbeddrProvider api={api}>

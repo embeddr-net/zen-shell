@@ -6,27 +6,24 @@ import React from "react";
 import { Badge, Button, ScrollArea } from "@embeddr/react-ui/ui";
 import { cn } from "@embeddr/react-ui/lib/utils";
 import {
-  CornerDownLeft,
-  Command,
-  Option,
   ArrowUpDown,
-  FileText,
-  PlugZap,
-  Cpu,
-  Zap,
+  Command,
   Compass,
+  CornerDownLeft,
+  Cpu,
+  FileText,
   Globe,
-  Terminal,
-  Sparkles,
   Image as ImageIcon,
+  Option,
+  PlugZap,
+  Sparkles,
+  Terminal,
+  Zap,
 } from "lucide-react";
-import type { ZenFinderItem } from "./finder-types";
 import { usePluginLogos } from "../hooks/data/usePluginLogos";
+import type { ZenFinderItem } from "./finder-types";
 
-const kindConfig: Record<
-  string,
-  { icon: React.ElementType; color: string; label: string }
-> = {
+const kindConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
   panel: { icon: Cpu, color: "text-blue-500", label: "Panel" },
   action: { icon: Zap, color: "text-amber-500", label: "Action" },
   "lotus-action": { icon: Zap, color: "text-amber-500", label: "Lotus Action" },
@@ -44,11 +41,7 @@ interface ZenFinderPreviewPaneProps {
   className?: string;
 }
 
-export function ZenFinderPreviewPane({
-  item,
-  onRun,
-  className,
-}: ZenFinderPreviewPaneProps) {
+export function ZenFinderPreviewPane({ item, onRun, className }: ZenFinderPreviewPaneProps) {
   const { data: logoData } = usePluginLogos();
   const logos = logoData?.logos || {};
 
@@ -87,8 +80,7 @@ export function ZenFinderPreviewPane({
 
   const resource = (item.data?.resource || {}) as Record<string, any>;
   const resourceType = resource?.type || item.kind;
-  let previewUrl =
-    (item.data?.preview_url as string) || resource?.preview_url;
+  let previewUrl = (item.data?.preview_url as string) || resource?.preview_url;
   if (!previewUrl && resource?.content_url) previewUrl = resource.content_url;
   if (resourceType === "document") previewUrl = undefined;
   if (resourceType === "video" && previewUrl) {
@@ -104,9 +96,7 @@ export function ZenFinderPreviewPane({
 
   const rawScore = item.score ?? 0;
   const score =
-    item.source === "server" && rawScore > 0 && rawScore <= 1
-      ? Math.round(rawScore * 100)
-      : null;
+    item.source === "server" && rawScore > 0 && rawScore <= 1 ? Math.round(rawScore * 100) : null;
 
   return (
     <div className={cn("h-full flex flex-col", className)}>
@@ -186,34 +176,28 @@ export function ZenFinderPreviewPane({
 
           {(item.kind === "action" || item.kind === "panel") && item.data && (
             <div className="space-y-2">
-              {item.data.action && (
-                <MetaRow label="Action" value={String(item.data.action)} />
-              )}
+              {item.data.action && <MetaRow label="Action" value={String(item.data.action)} />}
               {item.data.componentName && (
                 <MetaRow label="Component" value={String(item.data.componentName)} />
               )}
-              {item.data.entryKey && (
-                <MetaRow label="Entry" value={String(item.data.entryKey)} />
-              )}
+              {item.data.entryKey && <MetaRow label="Entry" value={String(item.data.entryKey)} />}
             </div>
           )}
 
-          {item.data?.tags &&
-            Array.isArray(item.data.tags) &&
-            item.data.tags.length > 0 && (
-              <div>
-                <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wide mb-1">
-                  Tags
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {item.data.tags.map((tag: string, i: number) => (
-                    <Badge key={i} variant="secondary" className="text-[10px]">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+          {item.data?.tags && Array.isArray(item.data.tags) && item.data.tags.length > 0 && (
+            <div>
+              <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wide mb-1">
+                Tags
               </div>
-            )}
+              <div className="flex flex-wrap gap-1">
+                {item.data.tags.map((tag: string, i: number) => (
+                  <Badge key={i} variant="secondary" className="text-[10px]">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="pt-2 space-y-1.5">
             <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">
@@ -248,9 +232,7 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="text-muted-foreground/70 shrink-0">{label}:</span>
-      <code className="text-[11px] bg-muted rounded px-1.5 py-0.5 truncate">
-        {value}
-      </code>
+      <code className="text-[11px] bg-muted rounded px-1.5 py-0.5 truncate">{value}</code>
     </div>
   );
 }

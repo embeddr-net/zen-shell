@@ -1,13 +1,11 @@
 import React from "react";
 import * as Lucide from "lucide-react";
 import { DropdownMenuItem } from "@embeddr/react-ui";
+import { useZenWindowStoreContext } from "../stores";
 import { UmdPanelHost } from "./umd-panel-host";
 import { ZenDraggablePanel } from "./zen-draggable-panel";
-import { useZenWindowStoreContext } from "../stores";
-import {
-  ZenPanelManagerCore,
-  type ZenWindowRendererProps,
-} from "./zen-panel-manager-core";
+import { ZenPanelManagerCore } from "./zen-panel-manager-core";
+import type { ZenWindowRendererProps } from "./zen-panel-manager-core";
 
 export type ZenFrontendComponent = {
   name?: string | null;
@@ -29,14 +27,11 @@ export type ZenInspection = {
   name: string;
   source_path?: string | null;
   output_prefix?: string | null;
-  frontend_components?: ZenFrontendComponent[] | null;
-  panels?: ZenPanelDef[] | null;
+  frontend_components?: Array<ZenFrontendComponent> | null;
+  panels?: Array<ZenPanelDef> | null;
 };
 
-function resolveComponentId(
-  componentId: string,
-  inspections: Record<string, ZenInspection>,
-) {
+function resolveComponentId(componentId: string, inspections: Record<string, ZenInspection>) {
   const pluginIds = Object.keys(inspections);
   let bestMatch: string | null = null;
   for (const pid of pluginIds) {
@@ -53,9 +48,7 @@ function resolveComponentId(
   const inspection = inspections[bestMatch];
   const panels = inspection?.panels || [];
   const frontendDefs = inspection?.frontend_components || [];
-  const defFromPanels = panels.find(
-    (panel) => panel?.name === defId || panel?.component === defId,
-  );
+  const defFromPanels = panels.find((panel) => panel?.name === defId || panel?.component === defId);
   const defFromFrontend = frontendDefs.find(
     (comp) => comp?.name === defId || comp?.component === defId,
   );
@@ -77,13 +70,7 @@ function resolveTitleIcon(
   logoUrl?: string | null,
 ) {
   if (logoUrl) {
-    return (
-      <img
-        src={logoUrl}
-        alt="panel logo"
-        className="h-4 w-4 rounded-sm object-contain"
-      />
-    );
+    return <img src={logoUrl} alt="panel logo" className="h-4 w-4 rounded-sm object-contain" />;
   }
   if (!def?.icon) return undefined;
   const Icon = (Lucide as any)[def.icon];
@@ -191,9 +178,7 @@ const UmdWindowRenderer = React.memo(
             onClose={() => closeWindow(windowState.id)}
             position={windowState.position}
             size={windowState.size}
-            onPositionChange={(pos) =>
-              updateWindow(windowState.id, { position: pos })
-            }
+            onPositionChange={(pos) => updateWindow(windowState.id, { position: pos })}
             onSizeChange={(size) => updateWindow(windowState.id, { size })}
             zIndex={zIndex}
             isActive={isActive}
@@ -248,12 +233,8 @@ const UmdWindowRenderer = React.memo(
       distDir,
     );
 
-    const title =
-      activeWindow.title?.trim() || resolveTitle(resolved.def) || "Untitled";
-    const titleIcon = resolveTitleIcon(
-      resolved.def,
-      logos?.[resolved.pluginId] || null,
-    );
+    const title = activeWindow.title?.trim() || resolveTitle(resolved.def) || "Untitled";
+    const titleIcon = resolveTitleIcon(resolved.def, logos?.[resolved.pluginId] || null);
 
     return (
       <UmdPanelHost
@@ -279,21 +260,17 @@ const UmdWindowRenderer = React.memo(
               ? {
                   tabs,
                   activeTabId,
-                  onSelect: (tabId: string) =>
-                    setActiveTab(windowState.id, tabId),
+                  onSelect: (tabId: string) => setActiveTab(windowState.id, tabId),
                   onDetach: (tabId: string) => detachTab(tabId),
                   onDetachAt: (tabId: string) => {
                     detachTab(tabId);
                   },
                   onMove: (tabId: string, targetIndex: number) =>
                     moveTab(windowState.id, tabId, targetIndex),
-                  titles: tabs.reduce(
-                    (acc: Record<string, string>, id: string) => {
-                      acc[id] = windows[id]?.title?.trim() || "Untitled Panel";
-                      return acc;
-                    },
-                    {},
-                  ),
+                  titles: tabs.reduce((acc: Record<string, string>, id: string) => {
+                    acc[id] = windows[id]?.title?.trim() || "Untitled Panel";
+                    return acc;
+                  }, {}),
                 }
               : null,
         }}
@@ -303,16 +280,12 @@ const UmdWindowRenderer = React.memo(
         onPinChange={() => togglePin(windowState.id)}
         additionalSettingsItems={
           <DropdownMenuItem
-            onClick={() =>
-              isBackdrop ? setBackdrop(null) : setBackdrop(windowState.id)
-            }
+            onClick={() => (isBackdrop ? setBackdrop(null) : setBackdrop(windowState.id))}
           >
             {isBackdrop ? "Exit Backdrop" : "Set as Backdrop"}
           </DropdownMenuItem>
         }
-        onPositionChange={(pos) =>
-          updateWindow(windowState.id, { position: pos })
-        }
+        onPositionChange={(pos) => updateWindow(windowState.id, { position: pos })}
         onSizeChange={(size) => updateWindow(windowState.id, { size })}
       />
     );

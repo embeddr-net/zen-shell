@@ -3,12 +3,12 @@ import type { PluginDefinition } from "@embeddr/react-ui/types";
 
 export interface PluginRegistryState {
   plugins: Record<string, PluginDefinition>;
-  activePlugins: string[];
-  knownPlugins: string[];
+  activePlugins: Array<string>;
+  knownPlugins: Array<string>;
   backendMetadata: Record<string, any>;
 
   registerPlugin: (plugin: PluginDefinition) => void;
-  registerPlugins: (plugins: PluginDefinition[]) => void;
+  registerPlugins: (plugins: Array<PluginDefinition>) => void;
   unregisterPlugin: (pluginId: string) => void;
   activatePlugin: (pluginId: string) => void;
   deactivatePlugin: (pluginId: string) => void;
@@ -39,12 +39,8 @@ export const usePluginRegistry = create<PluginRegistryState>((set, get) => ({
 
       return {
         plugins: { ...state.plugins, [plugin.id]: plugin },
-        knownPlugins: isKnown
-          ? state.knownPlugins
-          : [...state.knownPlugins, plugin.id],
-        activePlugins: isActive
-          ? state.activePlugins
-          : [...state.activePlugins, plugin.id],
+        knownPlugins: isKnown ? state.knownPlugins : [...state.knownPlugins, plugin.id],
+        activePlugins: isActive ? state.activePlugins : [...state.activePlugins, plugin.id],
       };
     });
   },
@@ -107,7 +103,7 @@ export function registerPlugin(plugin: PluginDefinition) {
   usePluginRegistry.getState().registerPlugin(plugin);
 }
 
-export function registerPlugins(plugins: PluginDefinition[]) {
+export function registerPlugins(plugins: Array<PluginDefinition>) {
   usePluginRegistry.getState().registerPlugins(plugins);
 }
 

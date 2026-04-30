@@ -1,26 +1,16 @@
 import React from "react";
-import type { PluginDefinition } from "@embeddr/react-ui/types";
 import * as Icons from "lucide-react";
-import { DynamicPluginComponent } from "./dynamic-loader";
+import { registerReactiveContext } from "@embeddr/react-ui/lib/reactive";
+import { registerRenderable, registerRenderableMeta } from "@embeddr/react-ui/lib/renderables";
 import { ensureUmdBundle } from "../runtime/umd-loader";
+import { DynamicPluginComponent } from "./dynamic-loader";
 import { registerPlugin, registerPlugins, usePluginRegistry } from "./registry";
-import {
-  registerReactiveContext,
-  type ReactiveConfig,
-  type ReactivePresentation,
-} from "@embeddr/react-ui/lib/reactive";
-import {
-  registerRenderable,
-  registerRenderableMeta,
-  type RenderableProps,
-} from "@embeddr/react-ui/lib/renderables";
+import type { ReactiveConfig, ReactivePresentation } from "@embeddr/react-ui/lib/reactive";
+import type { RenderableProps } from "@embeddr/react-ui/lib/renderables";
+import type { PluginDefinition } from "@embeddr/react-ui/types";
 
-type PluginComponentRegistration = NonNullable<
-  PluginDefinition["components"]
->[number];
-type PluginActionRegistration = NonNullable<
-  PluginDefinition["actions"]
->[number];
+type PluginComponentRegistration = NonNullable<PluginDefinition["components"]>[number];
+type PluginActionRegistration = NonNullable<PluginDefinition["actions"]>[number];
 
 export interface PluginManifestComponent {
   name?: string;
@@ -85,13 +75,13 @@ export interface PluginManifestRenderable {
   match_type?: string;
   uri_prefix?: string;
   priority?: number;
-  sources?: string[];
-  event_types?: string[];
-  processing_types?: string[];
-  done_types?: string[];
-  error_types?: string[];
-  artifact_id_paths?: string[];
-  preview_paths?: string[];
+  sources?: Array<string>;
+  event_types?: Array<string>;
+  processing_types?: Array<string>;
+  done_types?: Array<string>;
+  error_types?: Array<string>;
+  artifact_id_paths?: Array<string>;
+  preview_paths?: Array<string>;
   prefer_final_artifact_only?: boolean;
   presentation?: {
     label?: string;
@@ -99,7 +89,7 @@ export interface PluginManifestRenderable {
     logo_url?: string;
     tone?: "default" | "brand" | "accent" | "warning";
   };
-  aliases?: string[];
+  aliases?: Array<string>;
 }
 
 export interface PluginManifest {
@@ -109,17 +99,17 @@ export interface PluginManifest {
   description?: string;
   url?: string;
   intents?: Array<string>;
-  frontend_components?: PluginManifestComponent[];
-  frontend_actions?: PluginManifestAction[];
-  panels?: PluginManifestPanel[];
-  pages?: PluginManifestPage[];
-  widgets?: PluginManifestWidget[];
-  docks?: PluginManifestDock[];
-  renderables?: PluginManifestRenderable[];
+  frontend_components?: Array<PluginManifestComponent>;
+  frontend_actions?: Array<PluginManifestAction>;
+  panels?: Array<PluginManifestPanel>;
+  pages?: Array<PluginManifestPage>;
+  widgets?: Array<PluginManifestWidget>;
+  docks?: Array<PluginManifestDock>;
+  renderables?: Array<PluginManifestRenderable>;
 }
 
 export interface PluginLoaderAdapter {
-  list: () => Promise<PluginManifest[]>;
+  list: () => Promise<Array<PluginManifest>>;
   resolveScriptUrl: (manifest: PluginManifest) => string;
   resolveCssUrl?: (manifest: PluginManifest) => string | null;
 }
@@ -140,8 +130,8 @@ const LOCATION_MAP: Record<string, any> = {
 };
 
 function normalizePanelComponents(
-  panels: PluginManifestPanel[] | undefined,
-): PluginManifestComponent[] {
+  panels: Array<PluginManifestPanel> | undefined,
+): Array<PluginManifestComponent> {
   return (panels || []).map((p) => ({
     name: p.id || p.name,
     label: p.label,
@@ -154,8 +144,8 @@ function normalizePanelComponents(
 }
 
 function normalizePageComponents(
-  pages: PluginManifestPage[] | undefined,
-): PluginManifestComponent[] {
+  pages: Array<PluginManifestPage> | undefined,
+): Array<PluginManifestComponent> {
   return (pages || []).map((p) => ({
     name: p.id || p.name,
     label: p.label,
@@ -170,8 +160,8 @@ function normalizePageComponents(
 }
 
 function normalizeWidgetComponents(
-  widgets: PluginManifestWidget[] | undefined,
-): PluginManifestComponent[] {
+  widgets: Array<PluginManifestWidget> | undefined,
+): Array<PluginManifestComponent> {
   return (widgets || []).map((w) => ({
     name: w.name,
     label: w.label,
@@ -186,8 +176,8 @@ function normalizeWidgetComponents(
 }
 
 function normalizeDockComponents(
-  docks: PluginManifestDock[] | undefined,
-): PluginManifestComponent[] {
+  docks: Array<PluginManifestDock> | undefined,
+): Array<PluginManifestComponent> {
   return (docks || []).map((d) => ({
     name: d.name,
     label: d.label,
@@ -213,8 +203,7 @@ function toComponentRegistration(
   const label = comp.label || comp.name || componentName;
   return {
     id: comp.name || componentName,
-    location:
-      LOCATION_MAP[comp.location || "WINDOW"] || comp.location || "window",
+    location: LOCATION_MAP[comp.location || "WINDOW"] || comp.location || "window",
     label,
     icon: lucideIconFromName(comp.icon),
     // use exportName for window spawning + toolbox rendering
@@ -257,12 +246,10 @@ function toActionRegistration(
     label,
     icon: lucideIconFromName(action.icon),
     handler: undefined,
-  } as any;
+  };
 }
 
-function renderableToReactiveConfig(
-  r: PluginManifestRenderable,
-): ReactiveConfig {
+function renderableToReactiveConfig(r: PluginManifestRenderable): ReactiveConfig {
   return {
     source: r.sources && r.sources.length ? r.sources : undefined,
     types: r.event_types,
@@ -275,9 +262,7 @@ function renderableToReactiveConfig(
   };
 }
 
-function renderableToPresentation(
-  r: PluginManifestRenderable,
-): ReactivePresentation | undefined {
+function renderableToPresentation(r: PluginManifestRenderable): ReactivePresentation | undefined {
   const p = r.presentation;
   if (!p) return undefined;
   return {
@@ -295,8 +280,8 @@ function registerManifestRenderables(manifest: PluginManifest): void {
     const config = renderableToReactiveConfig(r);
     const presentation = renderableToPresentation(r);
 
-    const matchPrefixes = [r.uri_prefix, ...(r.aliases || [])].filter(
-      (s): s is string => Boolean(s && s.length),
+    const matchPrefixes = [r.uri_prefix, ...(r.aliases || [])].filter((s): s is string =>
+      Boolean(s && s.length),
     );
 
     // Register the reactive context under each possible match key. The
@@ -332,7 +317,7 @@ function registerManifestRenderables(manifest: PluginManifest): void {
         api: props.api,
         item: props.item,
         context: props.context,
-      } as any);
+      });
 
     const LazyThumbnail: React.FC<RenderableProps> | undefined = thumbnailName
       ? (props) =>
@@ -342,7 +327,7 @@ function registerManifestRenderables(manifest: PluginManifest): void {
             api: props.api,
             item: props.item,
             context: props.context,
-          } as any)
+          })
       : undefined;
 
     // Use predicate-only matching so match_type OR any alias triggers the
@@ -378,9 +363,7 @@ function registerManifestRenderables(manifest: PluginManifest): void {
   }
 }
 
-export function createVirtualPluginDefinition(
-  manifest: PluginManifest,
-): PluginDefinition {
+export function createVirtualPluginDefinition(manifest: PluginManifest): PluginDefinition {
   const normalizedComponents = [
     ...(manifest.frontend_components || []),
     ...normalizePanelComponents(manifest.panels),
@@ -433,13 +416,14 @@ export async function loadExternalPlugins({
   }
 
   const virtualPlugins = manifests
-    .filter((manifest) =>
-      Boolean(manifest.frontend_components?.length) ||
-      Boolean(manifest.frontend_actions?.length) ||
-      Boolean(manifest.panels?.length) ||
-      Boolean(manifest.pages?.length) ||
-      Boolean(manifest.widgets?.length) ||
-      Boolean(manifest.docks?.length),
+    .filter(
+      (manifest) =>
+        Boolean(manifest.frontend_components?.length) ||
+        Boolean(manifest.frontend_actions?.length) ||
+        Boolean(manifest.panels?.length) ||
+        Boolean(manifest.pages?.length) ||
+        Boolean(manifest.widgets?.length) ||
+        Boolean(manifest.docks?.length),
     )
     .map((manifest) => createVirtualPluginDefinition(manifest));
 
@@ -470,12 +454,8 @@ export async function loadExternalPlugins({
     if (!scriptUrlRaw) {
       continue;
     }
-    const cacheSuffix = cacheBust
-      ? `${scriptUrlRaw.includes("?") ? "&" : "?"}t=${Date.now()}`
-      : "";
-    const scriptUrl = cacheBust
-      ? `${scriptUrlRaw}${cacheSuffix}`
-      : scriptUrlRaw;
+    const cacheSuffix = cacheBust ? `${scriptUrlRaw.includes("?") ? "&" : "?"}t=${Date.now()}` : "";
+    const scriptUrl = cacheBust ? `${scriptUrlRaw}${cacheSuffix}` : scriptUrlRaw;
     const cssUrlRaw = adapter.resolveCssUrl?.(manifest) ?? null;
     const cssUrl = cssUrlRaw
       ? cacheBust
@@ -486,10 +466,7 @@ export async function loadExternalPlugins({
     try {
       await ensureUmdBundle({ scriptUrl, cssUrl });
     } catch (err) {
-      console.warn(
-        `[ZenUI] Failed to load UMD bundle for plugin ${manifest.id}, skipping`,
-        err,
-      );
+      console.warn(`[ZenUI] Failed to load UMD bundle for plugin ${manifest.id}, skipping`, err);
     }
   }
 

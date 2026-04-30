@@ -11,14 +11,11 @@
  *
  * Apps can override any handler per kind.
  */
-import type { ZenFinderItem } from "./finder-types";
 import { useTypeActionStore } from "../stores/type-action-store";
+import type { ZenFinderItem } from "./finder-types";
 
 /** Handler function for a specific item kind */
-export type FinderDispatchHandler = (
-  item: ZenFinderItem,
-  api: any,
-) => void | Promise<void>;
+export type FinderDispatchHandler = (item: ZenFinderItem, api: any) => void | Promise<void>;
 
 export interface FinderDispatchConfig {
   /** Override handlers per item kind. Takes priority over defaults. */
@@ -43,11 +40,9 @@ export interface FinderDispatchConfig {
  */
 function resolveResourceUrls(item: ZenFinderItem) {
   const resource = (item.data?.resource || {}) as Record<string, any>;
-  const resourceType =
-    resource?.type || item.data?.type_name || item.kind || "web";
+  const resourceType = resource?.type || item.data?.type_name || item.kind || "web";
 
-  let contentUrl =
-    resource?.content_url || resource?.url || (item.data?.url as string);
+  const contentUrl = resource?.content_url || resource?.url || (item.data?.url as string);
   let previewUrl =
     (item.data?.preview_url as string) ||
     resource?.preview_url ||
@@ -56,14 +51,8 @@ function resolveResourceUrls(item: ZenFinderItem) {
 
   // Stash scene: /stream → /screenshot for preview
   if (resourceType === "video" && previewUrl) {
-    if (
-      String(previewUrl).includes("/scene/") &&
-      /\/stream(\?|$)/.test(String(previewUrl))
-    ) {
-      previewUrl = String(previewUrl).replace(
-        /\/stream(\?.*)?$/,
-        "/screenshot$1",
-      );
+    if (String(previewUrl).includes("/scene/") && /\/stream(\?|$)/.test(String(previewUrl))) {
+      previewUrl = String(previewUrl).replace(/\/stream(\?.*)?$/, "/screenshot$1");
     }
   }
 
@@ -77,10 +66,7 @@ function resolveResourceUrls(item: ZenFinderItem) {
  *   const dispatch = createFinderDispatch(api, { onNavigate: (r) => router.push(r) });
  *   dispatch(item); // Opens media frame, spawns panel, etc.
  */
-export function createFinderDispatch(
-  api: any,
-  config: FinderDispatchConfig = {},
-) {
+export function createFinderDispatch(api: any, config: FinderDispatchConfig = {}) {
   const {
     handlers = {},
     mediaFrameComponentId,
@@ -112,9 +98,7 @@ export function createFinderDispatch(
       switch (kind) {
         // ── Command: call handler function directly ──
         case "command": {
-          const handler = item.data?.handler as
-            | (() => void | Promise<void>)
-            | undefined;
+          const handler = item.data?.handler as (() => void | Promise<void>) | undefined;
           if (handler) await handler();
           break;
         }
@@ -123,21 +107,14 @@ export function createFinderDispatch(
         case "panel": {
           const componentId = item.data?.entryKey || item.data?.componentId;
           if (componentId && api?.windows?.spawn) {
-            api.windows.spawn(
-              String(componentId),
-              item.title,
-              item.data?.props || {},
-            );
+            api.windows.spawn(String(componentId), item.title, item.data?.props || {});
           }
           break;
         }
 
         // ── Navigation: delegate to app ──
         case "nav": {
-          const route =
-            (item.data?.route as string) ||
-            (item.data?.sectionId as string) ||
-            "";
+          const route = (item.data?.route as string) || (item.data?.sectionId as string) || "";
           if (onNavigate && route) {
             onNavigate(route);
           }
@@ -163,8 +140,7 @@ export function createFinderDispatch(
 
         // ── Resource: open via registry or fallback ──
         case "resource": {
-          const { contentUrl, previewUrl, resourceType } =
-            resolveResourceUrls(item);
+          const { contentUrl, previewUrl, resourceType } = resolveResourceUrls(item);
           if (!contentUrl && !previewUrl) {
             onResult?.({ success: false, message: "No resource URL available" });
             return;
@@ -199,14 +175,9 @@ export function createFinderDispatch(
         // ── Lotus action: server-side dispatch ──
         case "lotus-action": {
           const resultId = item.data?.resultId || item.data?.capabilityId;
-          const dispatchData =
-            (item.data?.dispatchData as Record<string, unknown>) || {};
+          const dispatchData = (item.data?.dispatchData as Record<string, unknown>) || {};
           if (resultId && api?.lotus?.dispatch) {
-            const response = await api.lotus.dispatch(
-              String(resultId),
-              "action",
-              dispatchData,
-            );
+            const response = await api.lotus.dispatch(String(resultId), "action", dispatchData);
             if (response?.navigate_to && onNavigate) {
               onNavigate(response.navigate_to);
             }
@@ -238,8 +209,7 @@ export function createFinderDispatch(
 
         default: {
           // Unknown kind — try resource behavior if it has a URL
-          const { contentUrl, previewUrl, resourceType } =
-            resolveResourceUrls(item);
+          const { contentUrl, previewUrl, resourceType } = resolveResourceUrls(item);
           if (contentUrl || previewUrl) {
             const fallbackHandler =
               registry.resolve(resourceType) ||

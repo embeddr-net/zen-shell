@@ -106,11 +106,7 @@ export function EmbeddrIdentity({
   }, [fetchIdentity]);
 
   if (loading) {
-    return (
-      <div className={`text-xs text-muted-foreground ${className}`}>
-        Loading...
-      </div>
-    );
+    return <div className={`text-xs text-muted-foreground ${className}`}>Loading...</div>;
   }
 
   if (!info || !info.user) {
@@ -126,8 +122,7 @@ export function EmbeddrIdentity({
 
   const displayName = info.user.display_name || info.user.username;
   const initials = displayName.slice(0, 2).toUpperCase();
-  const operatorLabel =
-    info.operator?.display_name || info.operator?.name || "";
+  const operatorLabel = info.operator?.display_name || info.operator?.name || "";
 
   if (compact) {
     return (
@@ -145,9 +140,7 @@ export function EmbeddrIdentity({
         )}
         <span className="text-xs truncate">{displayName}</span>
         {operatorLabel && (
-          <span className="text-[10px] text-muted-foreground truncate">
-            {operatorLabel}
-          </span>
+          <span className="text-[10px] text-muted-foreground truncate">{operatorLabel}</span>
         )}
       </div>
     );

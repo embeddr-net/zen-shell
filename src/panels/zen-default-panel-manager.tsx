@@ -1,11 +1,8 @@
 import React from "react";
-import { ZenDraggablePanel } from "./zen-draggable-panel";
-import {
-  ZenPanelManagerCore,
-  type ZenWindowRendererProps,
-  type ZenWindowStateLike,
-} from "./zen-panel-manager-core";
 import { useZenWindowStoreContext } from "../stores";
+import { ZenDraggablePanel } from "./zen-draggable-panel";
+import { ZenPanelManagerCore } from "./zen-panel-manager-core";
+import type { ZenWindowRendererProps, ZenWindowStateLike } from "./zen-panel-manager-core";
 
 export type ZenPanelManagerProps = {
   renderContent?: (windowState: ZenWindowStateLike) => React.ReactNode;

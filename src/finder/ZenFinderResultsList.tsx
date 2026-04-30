@@ -4,19 +4,19 @@
  */
 import React from "react";
 import { cn } from "@embeddr/react-ui/lib/utils";
-import { ScrollArea, Badge } from "@embeddr/react-ui/ui";
+import { Badge, ScrollArea } from "@embeddr/react-ui/ui";
 import {
-  Sparkles,
+  ChevronRight,
   Cpu,
-  Navigation,
   FileImage,
   Globe,
-  Zap,
+  Navigation,
+  Sparkles,
   Terminal,
-  ChevronRight,
+  Zap,
 } from "lucide-react";
-import type { ZenFinderItem } from "./finder-types";
 import { usePluginLogos } from "../hooks/data/usePluginLogos";
+import type { ZenFinderItem } from "./finder-types";
 
 function kindIcon(kind: string) {
   switch (kind) {
@@ -42,26 +42,19 @@ function kindIcon(kind: string) {
 function resolvePreviewUrl(item: ZenFinderItem) {
   const resource = (item.data?.resource || {}) as Record<string, any>;
   const resourceType = resource?.type || item.kind;
-  let previewUrl =
-    item.data?.preview_url || resource?.preview_url || resource?.content_url;
+  const previewUrl = item.data?.preview_url || resource?.preview_url || resource?.content_url;
 
   if (!previewUrl) return undefined;
   if (resourceType === "document") return undefined;
 
   if (resourceType === "video") {
-    if (
-      String(previewUrl).includes("/scene/") &&
-      /\/stream(\?|$)/.test(String(previewUrl))
-    ) {
+    if (String(previewUrl).includes("/scene/") && /\/stream(\?|$)/.test(String(previewUrl))) {
       return String(previewUrl).replace(/\/stream(\?.*)?$/, "/screenshot$1");
     }
   }
 
   if (resourceType === "image") {
-    if (
-      String(previewUrl).includes("/image/") &&
-      /\/image(\?|$)/.test(String(previewUrl))
-    ) {
+    if (String(previewUrl).includes("/image/") && /\/image(\?|$)/.test(String(previewUrl))) {
       return String(previewUrl).replace(/\/image(\?.*)?$/, "/thumbnail$1");
     }
   }
@@ -70,7 +63,7 @@ function resolvePreviewUrl(item: ZenFinderItem) {
 }
 
 interface ZenFinderResultsListProps {
-  items: ZenFinderItem[];
+  items: Array<ZenFinderItem>;
   selectedId?: string | null;
   onSelect: (item: ZenFinderItem) => void;
   onConfirm: (item: ZenFinderItem) => void;
@@ -135,10 +128,7 @@ export function ZenFinderResultsList({
   if (!items.length) {
     return (
       <div
-        className={cn(
-          "h-full flex items-center justify-center text-muted-foreground",
-          className,
-        )}
+        className={cn("h-full flex items-center justify-center text-muted-foreground", className)}
       >
         <span className="text-sm">No results.</span>
       </div>
@@ -199,10 +189,7 @@ export function ZenFinderResultsList({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium truncate">{item.title}</span>
-                      <Badge
-                        variant="outline"
-                        className="text-[9px] capitalize shrink-0"
-                      >
+                      <Badge variant="outline" className="text-[9px] capitalize shrink-0">
                         {item.kind}
                       </Badge>
                     </div>

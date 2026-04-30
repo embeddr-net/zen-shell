@@ -8,7 +8,7 @@ export type ZenWindowStateLike = {
   openRevision?: number;
   isMinimized?: boolean;
   isPinned?: boolean;
-  tabs?: string[];
+  tabs?: Array<string>;
   activeTabId?: string;
   groupHostId?: string;
   position?: { x: number; y: number };
@@ -18,7 +18,7 @@ export type ZenWindowStateLike = {
 export type ZenWindowRendererProps = {
   id: string;
   windowState: ZenWindowStateLike;
-  panelOrder: string[];
+  panelOrder: Array<string>;
   zIndex: number;
   isBackdrop: boolean;
   isActive: boolean;
@@ -43,25 +43,17 @@ const ZenWindowRendererHost = React.memo(
     useWindowStore: <T>(selector: (state: any) => T) => T;
     WindowRenderer: React.ComponentType<ZenWindowRendererProps>;
   }) => {
-    const windowState = useWindowStore((s) => s.windows[id]) as
-      | ZenWindowStateLike
-      | undefined;
+    const windowState = useWindowStore((s) => s.windows[id]) as ZenWindowStateLike | undefined;
 
     // Targeted: only re-render when THIS window's zIndex or active status changes
-    const orderIndex = useWindowStore((s) =>
-      (s.panelOrder as string[]).indexOf(id),
-    ) as number;
+    const orderIndex = useWindowStore((s) => (s.panelOrder as Array<string>).indexOf(id));
     const isLastInOrder = useWindowStore(
-      (s) =>
-        (s.panelOrder as string[])[(s.panelOrder as string[]).length - 1] ===
-        id,
-    ) as boolean;
-    const backdropWindowId = useWindowStore((s) => s.backdropWindowId) as
-      | string
-      | null;
+      (s) => (s.panelOrder as Array<string>)[(s.panelOrder as Array<string>).length - 1] === id,
+    );
+    const backdropWindowId = useWindowStore((s) => s.backdropWindowId) as string | null;
 
     // Still need full panelOrder for the WindowRenderer prop (legacy compat)
-    const panelOrder = useWindowStore((s) => s.panelOrder) as string[];
+    const panelOrder = useWindowStore((s) => s.panelOrder) as Array<string>;
 
     if (!windowState || windowState.isMinimized) {
       return null;
@@ -69,11 +61,7 @@ const ZenWindowRendererHost = React.memo(
 
     const baseOrder = orderIndex === -1 ? 0 : orderIndex;
     const isBackdrop = windowState.id === backdropWindowId;
-    const zIndex = isBackdrop
-      ? 0
-      : windowState.isPinned
-        ? 1000 + baseOrder
-        : 20 + baseOrder;
+    const zIndex = isBackdrop ? 0 : windowState.isPinned ? 1000 + baseOrder : 20 + baseOrder;
     const isActive = isLastInOrder;
 
     return (
@@ -93,10 +81,7 @@ const ZenWindowRendererHost = React.memo(
     prev.WindowRenderer === next.WindowRenderer,
 );
 
-export function ZenPanelManagerCore({
-  useWindowStore,
-  WindowRenderer,
-}: ZenPanelManagerCoreProps) {
+export function ZenPanelManagerCore({ useWindowStore, WindowRenderer }: ZenPanelManagerCoreProps) {
   // Only subscribe to the list of open, non-minimized, non-grouped window IDs
   const openWindowIds = useWindowStore(
     React.useCallback(
@@ -108,7 +93,7 @@ export function ZenPanelManagerCore({
           .join(","),
       [],
     ),
-  ) as string;
+  );
 
   const idList = React.useMemo(
     () => (openWindowIds ? openWindowIds.split(",") : []),

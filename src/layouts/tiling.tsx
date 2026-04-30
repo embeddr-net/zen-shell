@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@embeddr/react-ui";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@embeddr/react-ui";
 
 export type TileDropZone = "center" | "left" | "right" | "top" | "bottom";
 
@@ -32,11 +28,7 @@ export const createNodeId = () => {
   return `node-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 };
 
-export const createLeaf = (
-  entryKey?: string,
-  id?: string,
-  instanceId?: string,
-): TileNode => {
+export const createLeaf = (entryKey?: string, id?: string, instanceId?: string): TileNode => {
   const leafId = id ?? createNodeId();
   return {
     id: leafId,
@@ -45,10 +37,7 @@ export const createLeaf = (
   };
 };
 
-export const getDropZoneFromPointer = (
-  event: React.DragEvent,
-  threshold = 0.25,
-): TileDropZone => {
+export const getDropZoneFromPointer = (event: React.DragEvent, threshold = 0.25): TileDropZone => {
   const rect = event.currentTarget.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
@@ -75,43 +64,32 @@ export const getDropZoneFromPointer = (
   return "right";
 };
 
-export const collectEntryKeys = (node: TileNode | null): string[] => {
+export const collectEntryKeys = (node: TileNode | null): Array<string> => {
   if (!node) return [];
   if (!node.split || !node.children) {
     return node.entryKey ? [node.entryKey] : [];
   }
-  return [
-    ...collectEntryKeys(node.children[0]),
-    ...collectEntryKeys(node.children[1]),
-  ];
+  return [...collectEntryKeys(node.children[0]), ...collectEntryKeys(node.children[1])];
 };
 
 export const findFirstEmptyLeaf = (node: TileNode): TileNode | null => {
   if (!node.children || !node.split) {
     return node.entryKey ? null : node;
   }
-  return (
-    findFirstEmptyLeaf(node.children[0]) ||
-    findFirstEmptyLeaf(node.children[1])
-  );
+  return findFirstEmptyLeaf(node.children[0]) || findFirstEmptyLeaf(node.children[1]);
 };
 
 export const findLastOccupiedLeaf = (node: TileNode): TileNode | null => {
   if (!node.children || !node.split) {
     return node.entryKey ? node : null;
   }
-  return (
-    findLastOccupiedLeaf(node.children[1]) ||
-    findLastOccupiedLeaf(node.children[0])
-  );
+  return findLastOccupiedLeaf(node.children[1]) || findLastOccupiedLeaf(node.children[0]);
 };
 
 export const findNodeById = (node: TileNode, id: string): TileNode | null => {
   if (node.id === id) return node;
   if (!node.children) return null;
-  return (
-    findNodeById(node.children[0], id) || findNodeById(node.children[1], id)
-  );
+  return findNodeById(node.children[0], id) || findNodeById(node.children[1], id);
 };
 
 export const updateNodeById = (
@@ -127,14 +105,9 @@ export const updateNodeById = (
   return { ...node, children: [left, right] };
 };
 
-export const pruneTreeEntries = (
-  node: TileNode,
-  validKeys: Set<string>,
-): TileNode => {
+export const pruneTreeEntries = (node: TileNode, validKeys: Set<string>): TileNode => {
   if (!node.children || !node.split) {
-    const nextEntryKey = validKeys.has(node.entryKey ?? "")
-      ? node.entryKey
-      : undefined;
+    const nextEntryKey = validKeys.has(node.entryKey ?? "") ? node.entryKey : undefined;
     if (nextEntryKey === node.entryKey) return node;
     return {
       ...node,
@@ -165,10 +138,7 @@ export const collapseEmptyNodes = (node: TileNode | null): TileNode | null => {
   return { ...node, children: [left, right] as [TileNode, TileNode] };
 };
 
-export const setTileDragData = (
-  event: React.DragEvent,
-  payload: TileDragPayload,
-) => {
+export const setTileDragData = (event: React.DragEvent, payload: TileDragPayload) => {
   const serialized = JSON.stringify(payload);
   event.dataTransfer.setData(TILE_DND_MIME, serialized);
   event.dataTransfer.setData("text/plain", serialized);
@@ -178,12 +148,8 @@ export const setTileDragData = (
 export const isTileDrag = (event: React.DragEvent) =>
   Array.from(event.dataTransfer.types || []).includes(TILE_DND_MIME);
 
-export const getTileDragData = (
-  event: React.DragEvent,
-): TileDragPayload | null => {
-  const raw =
-    event.dataTransfer.getData(TILE_DND_MIME) ||
-    event.dataTransfer.getData("text/plain");
+export const getTileDragData = (event: React.DragEvent): TileDragPayload | null => {
+  const raw = event.dataTransfer.getData(TILE_DND_MIME) || event.dataTransfer.getData("text/plain");
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as TileDragPayload;
@@ -217,10 +183,7 @@ export const sendEntryToTileTree = (
     return updateNodeById(tileTree, lastLeaf.id, (existing) => ({
       id: createNodeId(),
       split: "horizontal" as const,
-      children: [
-        existing,
-        createLeaf(entryKey, undefined, instanceId),
-      ] as [TileNode, TileNode],
+      children: [existing, createLeaf(entryKey, undefined, instanceId)] as [TileNode, TileNode],
     }));
   }
 
@@ -239,10 +202,8 @@ type TilingLayoutProps = {
 
 type Layout = Record<string, number>;
 
-const getLayoutStorageKey = (
-  groupId: string,
-  panelIds: readonly [string, string],
-) => `embeddr-tiling-layout:${groupId}:${panelIds.join(":")}`;
+const getLayoutStorageKey = (groupId: string, panelIds: readonly [string, string]) =>
+  `embeddr-tiling-layout:${groupId}:${panelIds.join(":")}`;
 
 const readPersistedLayout = (
   storageKey: string,
@@ -270,10 +231,7 @@ const readPersistedLayout = (
   }
 };
 
-function usePersistedPanelLayout(
-  groupId: string,
-  panelIds: readonly [string, string],
-) {
+function usePersistedPanelLayout(groupId: string, panelIds: readonly [string, string]) {
   const saveTimeoutRef = React.useRef<number | null>(null);
   const storageKey = React.useMemo(
     () => getLayoutStorageKey(groupId, panelIds),
@@ -337,8 +295,7 @@ function TilingSplitNodeView({
 }: TilingNodeViewProps) {
   const [firstChild, secondChild] = node.children as [TileNode, TileNode];
   const baseClass = "h-full w-full min-h-0 min-w-0";
-  const groupClass =
-    isRoot && className ? `${baseClass} ${className}` : baseClass;
+  const groupClass = isRoot && className ? `${baseClass} ${className}` : baseClass;
   const panelIds = React.useMemo(
     () => [firstChild.id, secondChild.id] as const,
     [firstChild.id, secondChild.id],
@@ -350,8 +307,10 @@ function TilingSplitNodeView({
     }),
     [panelDefaultSize, panelIds],
   );
-  const { defaultLayout, onLayoutChange: persistLayoutChange } =
-    usePersistedPanelLayout(node.id, panelIds);
+  const { defaultLayout, onLayoutChange: persistLayoutChange } = usePersistedPanelLayout(
+    node.id,
+    panelIds,
+  );
   const notifyTreeLayoutChange = React.useCallback(() => {
     onTreeLayoutChange?.();
   }, [onTreeLayoutChange]);
@@ -378,9 +337,7 @@ function TilingSplitNodeView({
       <ResizablePanel
         key={panelIds[0]}
         id={panelIds[0]}
-        defaultSize={
-          defaultLayout?.[panelIds[0]] ?? fallbackLayout[panelIds[0]]
-        }
+        defaultSize={defaultLayout?.[panelIds[0]] ?? fallbackLayout[panelIds[0]]}
         minSize={panelMinSize}
         onResize={onPanelResize}
         className="min-h-0 min-w-0"
@@ -398,9 +355,7 @@ function TilingSplitNodeView({
       <ResizablePanel
         key={panelIds[1]}
         id={panelIds[1]}
-        defaultSize={
-          defaultLayout?.[panelIds[1]] ?? fallbackLayout[panelIds[1]]
-        }
+        defaultSize={defaultLayout?.[panelIds[1]] ?? fallbackLayout[panelIds[1]]}
         minSize={panelMinSize}
         onResize={onPanelResize}
         className="min-h-0 min-w-0"

@@ -17,16 +17,11 @@ export type ResolvedPluginComponent = {
   def?: PluginComponentDefLike;
 };
 
-export const getEntryKey = (entry: PluginComponentEntry) =>
-  `${entry.pluginId}:${entry.def.id}`;
+export const getEntryKey = (entry: PluginComponentEntry) => `${entry.pluginId}:${entry.def.id}`;
 
 function isWindowLocation(location?: string | null) {
   const normalized = String(location || "").toLowerCase();
-  return (
-    normalized === "window" ||
-    normalized === "zen-overlay" ||
-    normalized === "page"
-  );
+  return normalized === "window" || normalized === "zen-overlay" || normalized === "page";
 }
 
 function normalizeKey(value?: string | null) {
@@ -37,8 +32,8 @@ function normalizeKey(value?: string | null) {
 
 export function collectPluginComponents(
   plugins: Record<string, PluginDefinition | unknown>,
-): PluginComponentEntry[] {
-  const all: PluginComponentEntry[] = [];
+): Array<PluginComponentEntry> {
+  const all: Array<PluginComponentEntry> = [];
 
   Object.values(plugins || {}).forEach((plugin) => {
     const typedPlugin = plugin as PluginDefinition;
@@ -79,7 +74,7 @@ export function resolvePluginComponent(
   const components = (plugin?.components || []) as Array<PluginComponentDefLike>;
   const def =
     components.find((component) => {
-      const typedComponent = component as PluginComponentDefLike;
+      const typedComponent = component;
       return (
         typedComponent?.id === defId ||
         typedComponent?.exportName === defId ||
@@ -87,7 +82,7 @@ export function resolvePluginComponent(
       );
     }) ||
     components.find((component) => {
-      const typedComponent = component as PluginComponentDefLike;
+      const typedComponent = component;
       return (
         normalizeKey(typedComponent?.id) === defNorm ||
         normalizeKey((typedComponent as any)?.name) === defNorm ||

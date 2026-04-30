@@ -1,20 +1,8 @@
 import React from "react";
-import { Input } from "@embeddr/react-ui/ui";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@embeddr/react-ui/ui";
-import { Button } from "@embeddr/react-ui/ui";
-import {
-  Search,
-  Loader2,
-  CornerDownLeft,
-  Sparkles,
-  SlidersHorizontal,
-} from "lucide-react";
+import { Button, Input, Popover, PopoverContent, PopoverTrigger } from "@embeddr/react-ui/ui";
+import { CornerDownLeft, Loader2, Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { cn } from "@embeddr/react-ui/lib/utils";
-import type { ZenFinderMode, ZenFinderKindOption } from "./finder-types";
+import type { ZenFinderKindOption, ZenFinderMode } from "./finder-types";
 
 interface ZenFinderSearchBarProps {
   value: string;
@@ -29,7 +17,7 @@ interface ZenFinderSearchBarProps {
   onModeChange?: (mode: ZenFinderMode) => void;
   chatAvailable?: boolean;
   /** Kind filter options */
-  kindOptions?: ZenFinderKindOption[];
+  kindOptions?: Array<ZenFinderKindOption>;
   hiddenKinds?: Set<string>;
   onToggleKind?: (kind: string) => void;
   /** Search provider label shown in placeholder */
@@ -99,9 +87,7 @@ export function ZenFinderSearchBar({
           onClick={toggleMode}
           className={cn(
             "absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors",
-            chatAvailable
-              ? "cursor-pointer hover:bg-muted"
-              : "cursor-default",
+            chatAvailable ? "cursor-pointer hover:bg-muted" : "cursor-default",
             isChat ? "text-primary bg-primary/10" : "text-muted-foreground",
           )}
           title={
@@ -110,14 +96,8 @@ export function ZenFinderSearchBar({
               : "Search mode"
           }
         >
-          {isChat ? (
-            <Sparkles className="h-3.5 w-3.5" />
-          ) : (
-            <Search className="h-3.5 w-3.5" />
-          )}
-          <span className="hidden sm:inline">
-            {isChat ? "Lotus" : "Search"}
-          </span>
+          {isChat ? <Sparkles className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
+          <span className="hidden sm:inline">{isChat ? "Lotus" : "Search"}</span>
         </button>
 
         <Input
@@ -158,10 +138,7 @@ export function ZenFinderSearchBar({
             <Button
               variant="ghost"
               size="icon"
-              className={cn(
-                "h-10 w-10 shrink-0",
-                hasFilters && "text-primary",
-              )}
+              className={cn("h-10 w-10 shrink-0", hasFilters && "text-primary")}
               title="Filter result types"
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -219,13 +196,7 @@ export function ZenFinderSearchBar({
         variant={isChat ? "default" : "secondary"}
         className="h-10 px-4"
       >
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : isChat ? (
-          "Send"
-        ) : (
-          "Go"
-        )}
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isChat ? "Send" : "Go"}
       </Button>
     </div>
   );

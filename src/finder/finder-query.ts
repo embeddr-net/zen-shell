@@ -38,7 +38,7 @@ export function parseFinderQuery(raw: string): ZenFinderParsedQuery {
   // Parse tags (@key:value) and sort operators ($key:value)
   const tags: Array<{ key: string; value?: string }> = [];
   const tokens = rest.split(/\s+/).filter(Boolean);
-  const remaining: string[] = [];
+  const remaining: Array<string> = [];
 
   for (const token of tokens) {
     if (token.startsWith("@") && token.length > 1) {
@@ -76,7 +76,7 @@ export function parseFinderQuery(raw: string): ZenFinderParsedQuery {
  */
 export function getTagValue(
   tags: Array<{ key: string; value?: string }>,
-  keys: string[],
+  keys: Array<string>,
 ): string | undefined {
   return tags.find((t) => keys.includes(t.key))?.value;
 }

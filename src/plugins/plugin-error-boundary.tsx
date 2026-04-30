@@ -37,9 +37,7 @@ export class PluginErrorBoundary extends React.Component<
     if (this.state.error) {
       return (
         <div className="h-full w-full p-4 flex flex-col gap-3">
-          <div className="text-sm font-semibold text-destructive">
-            Plugin crashed
-          </div>
+          <div className="text-sm font-semibold text-destructive">Plugin crashed</div>
           <div className="text-xs text-muted-foreground">
             {this.props.pluginId} / {this.props.componentName}
           </div>

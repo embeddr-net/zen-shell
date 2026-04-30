@@ -1,6 +1,6 @@
 import React from "react";
-import type { EmbeddrAPI } from "@embeddr/react-ui/types";
 import { usePluginRegistry } from "../plugins/registry";
+import type { EmbeddrAPI } from "@embeddr/react-ui/types";
 
 type AnyEvent = { detail?: any } | any;
 
@@ -9,10 +9,7 @@ type CoreUIEventBridgeProps = {
   onNavigate?: (to: string) => void;
 };
 
-export const CoreUIEventBridge = ({
-  api,
-  onNavigate,
-}: CoreUIEventBridgeProps) => {
+export const CoreUIEventBridge = ({ api, onNavigate }: CoreUIEventBridgeProps) => {
   React.useEffect(() => {
     const resolveBoundComponentId = (
       bindingKey:
@@ -22,7 +19,7 @@ export const CoreUIEventBridge = ({
         | "open_artifact"
         | "open_gallery",
       payload: any,
-      keywords: string[],
+      keywords: Array<string>,
     ): string | null => {
       const explicit = payload?.componentId ?? payload?.component_id;
       if (typeof explicit === "string" && explicit.length > 0) return explicit;
@@ -43,12 +40,10 @@ export const CoreUIEventBridge = ({
       for (const [pluginId, plugin] of Object.entries(plugins)) {
         const components = (plugin as any)?.components || [];
         for (const component of components) {
-          const compId = (component as any)?.id;
-          const exportName = (component as any)?.exportName;
-          const location = String(
-            (component as any)?.location || "",
-          ).toLowerCase();
-          const label = String((component as any)?.label || "").toLowerCase();
+          const compId = component?.id;
+          const exportName = component?.exportName;
+          const location = String(component?.location || "").toLowerCase();
+          const label = String(component?.label || "").toLowerCase();
           const haystack = `${String(compId || "").toLowerCase()} ${String(exportName || "").toLowerCase()} ${label}`;
 
           let score = 0;
@@ -94,11 +89,7 @@ export const CoreUIEventBridge = ({
           p?.props ?? {},
         );
       } else {
-        api.windows.spawn(
-          resolvedComponentId,
-          p?.title ?? resolvedComponentId,
-          p?.props ?? {},
-        );
+        api.windows.spawn(resolvedComponentId, p?.title ?? resolvedComponentId, p?.props ?? {});
       }
     };
 
@@ -121,17 +112,11 @@ export const CoreUIEventBridge = ({
       if (!items.length) return;
 
       const shouldSpawn =
-        p.spawn === true ||
-        p.windowStrategy === "spawn" ||
-        p.instanceMode === "multiple";
+        p.spawn === true || p.windowStrategy === "spawn" || p.instanceMode === "multiple";
       const windowId = shouldSpawn
         ? undefined
         : (p.targetWindowId ?? p.panelId ?? "core-media-frame");
-      const componentId = resolveBoundComponentId("display_media", p, [
-        "media",
-        "frame",
-        "viewer",
-      ]);
+      const componentId = resolveBoundComponentId("display_media", p, ["media", "frame", "viewer"]);
       if (!componentId) return;
       const props = {
         initialItems: items,
@@ -142,12 +127,7 @@ export const CoreUIEventBridge = ({
       };
 
       if (windowId) {
-        api.windows.open(
-          windowId,
-          p.title ?? "Media Frame",
-          componentId,
-          props,
-        );
+        api.windows.open(windowId, p.title ?? "Media Frame", componentId, props);
       } else {
         api.windows.spawn(componentId, p.title ?? "Media Frame", props);
       }
@@ -159,15 +139,9 @@ export const CoreUIEventBridge = ({
       if (!items.length) return;
 
       const shouldSpawn =
-        p.spawn === true ||
-        p.windowStrategy === "spawn" ||
-        p.instanceMode === "multiple";
-      const windowId = shouldSpawn
-        ? undefined
-        : (p.targetWindowId ?? p.panelId ?? "core-lightbox");
-      const componentId = resolveBoundComponentId("display_lightbox", p, [
-        "lightbox",
-      ]);
+        p.spawn === true || p.windowStrategy === "spawn" || p.instanceMode === "multiple";
+      const windowId = shouldSpawn ? undefined : (p.targetWindowId ?? p.panelId ?? "core-lightbox");
+      const componentId = resolveBoundComponentId("display_lightbox", p, ["lightbox"]);
       if (!componentId) return;
       const props = {
         initialItems: items,
@@ -195,10 +169,7 @@ export const CoreUIEventBridge = ({
       if (!items.length) return;
 
       const windowId = p.targetWindowId ?? p.panelId ?? "core-compare";
-      const componentId = resolveBoundComponentId("display_compare", p, [
-        "compare",
-        "comparison",
-      ]);
+      const componentId = resolveBoundComponentId("display_compare", p, ["compare", "comparison"]);
       if (!componentId) return;
       const props = {
         initialItems: items,
@@ -212,12 +183,9 @@ export const CoreUIEventBridge = ({
       }
     };
 
-    const resolveDisplayIntent = (
-      payload: any,
-    ): "media" | "lightbox" | "compare" => {
+    const resolveDisplayIntent = (payload: any): "media" | "lightbox" | "compare" => {
       const p = payload?.payload ?? payload ?? {};
-      const rawIntent =
-        p.display ?? p.intent ?? p.view ?? p.kind ?? p.panel_type ?? p.target;
+      const rawIntent = p.display ?? p.intent ?? p.view ?? p.kind ?? p.panel_type ?? p.target;
       const intent = String(rawIntent || "").toLowerCase();
 
       if (intent.includes("lightbox")) return "lightbox";
@@ -287,11 +255,7 @@ export const CoreUIEventBridge = ({
         targetWindowId: p?.targetWindowId,
         componentId:
           p?.componentId ||
-          resolveBoundComponentId("open_artifact", p, [
-            "artifact",
-            "detail",
-            "media",
-          ]),
+          resolveBoundComponentId("open_artifact", p, ["artifact", "detail", "media"]),
       });
     };
 
@@ -308,11 +272,7 @@ export const CoreUIEventBridge = ({
         targetWindowId: p?.targetWindowId,
         componentId:
           p?.componentId ||
-          resolveBoundComponentId("open_gallery", p, [
-            "gallery",
-            "media",
-            "frame",
-          ]),
+          resolveBoundComponentId("open_gallery", p, ["gallery", "media", "frame"]),
       });
     };
 
@@ -325,8 +285,7 @@ export const CoreUIEventBridge = ({
       const msg = description ? `${title}: ${description}` : title;
 
       if (!api.toast) return;
-      if (variant === "destructive" || variant === "error")
-        api.toast.error(msg);
+      if (variant === "destructive" || variant === "error") api.toast.error(msg);
       else if (variant === "success") api.toast.success(msg);
       else api.toast.info(msg);
     };

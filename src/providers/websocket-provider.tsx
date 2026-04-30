@@ -1,11 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef } from "react";
-import type { EmbeddrMessage } from "@embeddr/react-ui/types";
-import {
-  createEmbeddrWebSocket,
-  type ClientSessionInfo,
-  type EmbeddrWebSocket,
-} from "@embeddr/client-typescript";
+import { createEmbeddrWebSocket } from "@embeddr/client-typescript";
 import { globalEventBus } from "../events/event-bus";
+import type { ClientSessionInfo, EmbeddrWebSocket } from "@embeddr/client-typescript";
+import type { EmbeddrMessage } from "@embeddr/react-ui/types";
 
 // Re-export for backwards compat
 export type { ClientSessionInfo } from "@embeddr/client-typescript";
@@ -14,8 +11,8 @@ export type WebSocketState = {
   isConnected: boolean;
   lastMessage: EmbeddrMessage | null;
   myClientId: string | null;
-  clients: string[];
-  sessions: ClientSessionInfo[];
+  clients: Array<string>;
+  sessions: Array<ClientSessionInfo>;
   refreshClients: () => Promise<void>;
 };
 
@@ -53,11 +50,9 @@ export const ZenWebSocketProvider = ({
 }: ZenWebSocketProviderProps) => {
   const wsClientRef = useRef<EmbeddrWebSocket | null>(null);
   const [isConnected, setIsConnected] = React.useState(false);
-  const [lastMessage, setLastMessage] = React.useState<EmbeddrMessage | null>(
-    null,
-  );
-  const [clients, setClients] = React.useState<string[]>([]);
-  const [sessions, setSessions] = React.useState<ClientSessionInfo[]>([]);
+  const [lastMessage, setLastMessage] = React.useState<EmbeddrMessage | null>(null);
+  const [clients, setClients] = React.useState<Array<string>>([]);
+  const [sessions, setSessions] = React.useState<Array<ClientSessionInfo>>([]);
   const [myClientId, setMyClientId] = React.useState<string | null>(null);
 
   // Create / recreate the headless WS client when config changes
@@ -96,10 +91,7 @@ export const ZenWebSocketProvider = ({
 
       if (msg.type) {
         globalEventBus.emit(msg.type, msg.data);
-        if (
-          msg.type === "client_connected" ||
-          msg.type === "client_disconnected"
-        ) {
+        if (msg.type === "client_connected" || msg.type === "client_disconnected") {
           client.refreshClients().then((result) => {
             setClients(result.clients);
             setSessions(result.sessions);
@@ -118,16 +110,13 @@ export const ZenWebSocketProvider = ({
     });
 
     // Bridge outbound sends from globalEventBus → WS
-    const unsubSend = globalEventBus.on(
-      "websocket:send",
-      (payload: unknown) => {
-        if (typeof payload === "string") {
-          client.send(JSON.parse(payload));
-        } else if (payload && typeof payload === "object") {
-          client.send(payload as Record<string, any>);
-        }
-      },
-    );
+    const unsubSend = globalEventBus.on("websocket:send", (payload: unknown) => {
+      if (typeof payload === "string") {
+        client.send(JSON.parse(payload));
+      } else if (payload && typeof payload === "object") {
+        client.send(payload as Record<string, any>);
+      }
+    });
 
     client.connect();
 
@@ -162,9 +151,5 @@ export const ZenWebSocketProvider = ({
     [isConnected, lastMessage, myClientId, clients, sessions, refreshClients],
   );
 
-  return (
-    <WebSocketContext.Provider value={value}>
-      {children}
-    </WebSocketContext.Provider>
-  );
+  return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
 };

@@ -12,9 +12,7 @@ export function usePluginLogos() {
   return useQuery({
     queryKey: ["plugins", "logos"],
     queryFn: async () => {
-      const data = await zenFetch<{ logos: Record<string, string | null> }>(
-        "/plugins/logos",
-      );
+      const data = await zenFetch<{ logos: Record<string, string | null> }>("/plugins/logos");
       const logos = data?.logos || {};
       const normalized: Record<string, string | null> = {};
       for (const [key, value] of Object.entries(logos)) {

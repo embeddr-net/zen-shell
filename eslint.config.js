@@ -1,15 +1,19 @@
-import tseslint from "typescript-eslint";
+// @ts-check
+import { tanstackConfig } from "@tanstack/eslint-config";
 
 export default [
-  ...tseslint.configs.recommended,
+  ...tanstackConfig,
   {
-    ignores: ["dist/**", "node_modules/**", "*.config.*"],
+    ignores: ["dist/**", "build/**", ".vite/**", "coverage/**", "*.config.{js,ts,mjs,cjs}"],
   },
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      // pending eslint-plugin-react-hooks v7 + tanstack-config compatibility
+      "react-hooks/exhaustive-deps": "off",
+      // Too aggressive for code that handles localStorage / untyped JSON
+      // (e.g. version-checking parsed values where TS narrows to a literal).
+      "@typescript-eslint/no-unnecessary-condition": "off",
     },
   },
 ];

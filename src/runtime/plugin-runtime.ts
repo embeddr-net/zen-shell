@@ -24,11 +24,9 @@ export function resolvePluginRuntime(pluginId: string): PluginRuntime | null {
 }
 
 export function listPluginPanels(runtime: PluginRuntime | null) {
-  if (!runtime) return [] as PluginComponentEntry[];
+  if (!runtime) return [] as Array<PluginComponentEntry>;
 
-  const entries = Object.entries(runtime).filter(
-    ([, value]) => typeof value === "function",
-  );
+  const entries = Object.entries(runtime).filter(([, value]) => typeof value === "function");
 
   const matches = entries.filter(([key]) => /Panel$|Effect$/.test(String(key)));
 
@@ -36,9 +34,7 @@ export function listPluginPanels(runtime: PluginRuntime | null) {
 
   const combined = [
     ...matches,
-    ...(defaultExport && !matches.includes(defaultExport)
-      ? [defaultExport]
-      : []),
+    ...(defaultExport && !matches.includes(defaultExport) ? [defaultExport] : []),
   ];
 
   return combined.map(([key, value]) => ({
